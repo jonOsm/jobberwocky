@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, status
+from fastapi import FastAPI, Request, Depends, HTTPException, status, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse
@@ -12,7 +12,7 @@ from typing import List, Optional
 from app.database import get_db, engine
 from app.models import Base, Job, Employer, Category
 from app.schemas import JobCreate, JobUpdate, EmployerCreate, CategoryCreate, JobSearchParams
-from app.auth import security, authenticate_admin, generate_csrf_token, verify_csrf_token, require_csrf_token
+from app.auth import security, authenticate_admin, authenticate_admin_plain, generate_csrf_token, verify_csrf_token, create_admin_session, verify_admin_session, clear_admin_session, require_csrf_token
 from app.config import settings
 
 # Create database tables
@@ -180,23 +180,80 @@ async def sitemap(db: Session = Depends(get_db)):
 
 
 # Admin routes
+@app.get("/admin/login", response_class=HTMLResponse)
+async def admin_login_form(request: Request):
+    """Admin login form"""
+    print("DEBUG: Login form accessed")
+    import sys
+    sys.stdout.flush()
+    return templates.TemplateResponse("admin/login.html", {"request": request})
+
+
+@app.post("/admin/login")
+async def admin_login(
+    request: Request,
+    response: Response
+):
+    """Admin login"""
+    form_data = await request.form()
+    raw_username = form_data.get("username", "")
+    raw_password = form_data.get("password", "")
+    username = raw_username.strip()
+    password = raw_password.strip()
+    
+    print(f"DEBUG: Raw form data - username: '{raw_username}', password: '{raw_password}'")
+    print(f"DEBUG: After strip - username: '{username}', password: '{password}'")
+    print(f"DEBUG: Expected username: {settings.admin_username}, password: {settings.admin_password}")
+    
+    # Secure authentication check with password hashing
+    auth_result = authenticate_admin_plain(username, password)
+    print(f"DEBUG: Authentication result: {auth_result}")
+    
+    if auth_result:
+        print("DEBUG: Authentication successful, creating session and redirecting")
+        create_admin_session(response)
+        # Redirect with success message
+        response.headers["Location"] = "/admin?login=success"
+        response.status_code = 302
+        return response
+    else:
+        print("DEBUG: Authentication failed, showing error")
+        return templates.TemplateResponse(
+            "admin/login.html", 
+            {
+                "request": request,
+                "error": "Invalid username or password",
+                "username": username
+            }
+        )
+
+
+@app.post("/admin/logout")
+async def admin_logout(response: Response):
+    """Admin logout"""
+    clear_admin_session(response)
+    return RedirectResponse(url="/admin/login", status_code=302)
+
+
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
     request: Request,
-    credentials: HTTPBasicCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
     """Admin dashboard"""
-    if not authenticate_admin(credentials):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    print("DEBUG: admin_dashboard called")
+    if not verify_admin_session(request):
+        print("DEBUG: No valid session, redirecting to login")
+        return RedirectResponse(url="/admin/login", status_code=302)
     
+    print("DEBUG: Valid session, loading dashboard")
     jobs = db.query(Job).order_by(Job.created_at.desc()).all()
     employers = db.query(Employer).all()
     categories = db.query(Category).all()
+    
+    # Check for login success message
+    login_success = request.query_params.get("login") == "success"
+    print(f"DEBUG: login_success = {login_success}")
     
     return templates.TemplateResponse(
         "admin/dashboard.html",
@@ -204,7 +261,8 @@ async def admin_dashboard(
             "request": request,
             "jobs": jobs,
             "employers": employers,
-            "categories": categories
+            "categories": categories,
+            "login_success": login_success
         }
     )
 
@@ -212,16 +270,11 @@ async def admin_dashboard(
 @app.get("/admin/jobs/new", response_class=HTMLResponse)
 async def new_job_form(
     request: Request,
-    credentials: HTTPBasicCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
     """New job form"""
-    if not authenticate_admin(credentials):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if not verify_admin_session(request):
+        return RedirectResponse(url="/admin/login", status_code=302)
     
     employers = db.query(Employer).all()
     categories = db.query(Category).all()
@@ -239,16 +292,11 @@ async def new_job_form(
 @app.post("/admin/jobs/new")
 async def create_job(
     request: Request,
-    credentials: HTTPBasicCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
     """Create a new job"""
-    if not authenticate_admin(credentials):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if not verify_admin_session(request):
+        return RedirectResponse(url="/admin/login", status_code=302)
     
     form_data = await request.form()
     
@@ -285,16 +333,11 @@ async def create_job(
 async def edit_job_form(
     request: Request,
     job_id: int,
-    credentials: HTTPBasicCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
     """Edit job form"""
-    if not authenticate_admin(credentials):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if not verify_admin_session(request):
+        return RedirectResponse(url="/admin/login", status_code=302)
     
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
@@ -318,16 +361,11 @@ async def edit_job_form(
 async def update_job(
     request: Request,
     job_id: int,
-    credentials: HTTPBasicCredentials = Depends(security),
     db: Session = Depends(get_db)
 ):
     """Update a job"""
-    if not authenticate_admin(credentials):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Basic"},
-        )
+    if not verify_admin_session(request):
+        return RedirectResponse(url="/admin/login", status_code=302)
     
     job = db.query(Job).filter(Job.id == job_id).first()
     if not job:
