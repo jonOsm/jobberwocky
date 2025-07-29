@@ -74,7 +74,9 @@ def verify_admin_session(request: Request) -> bool:
 
 def clear_admin_session(response: Response) -> None:
     """Clear admin session"""
+    print("DEBUG: clear_admin_session called")
     response.delete_cookie("admin_session")
+    print("DEBUG: admin_session cookie deleted")
 
 
 def generate_csrf_token() -> str:

@@ -231,8 +231,12 @@ async def admin_login(
 @app.post("/admin/logout")
 async def admin_logout(response: Response):
     """Admin logout"""
+    print("DEBUG: Logout called, clearing session")
     clear_admin_session(response)
-    return RedirectResponse(url="/admin/login", status_code=302)
+    print("DEBUG: Session cleared, redirecting to home page")
+    response.headers["Location"] = "/"
+    response.status_code = 302
+    return response
 
 
 @app.get("/admin", response_class=HTMLResponse)
@@ -273,7 +277,9 @@ async def new_job_form(
     db: Session = Depends(get_db)
 ):
     """New job form"""
+    print("DEBUG: new_job_form called")
     if not verify_admin_session(request):
+        print("DEBUG: No valid session in new_job_form, redirecting to login")
         return RedirectResponse(url="/admin/login", status_code=302)
     
     employers = db.query(Employer).all()
