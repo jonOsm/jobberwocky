@@ -10,9 +10,9 @@ import stripe
 from typing import List, Optional
 
 from app.database import get_db, engine
-from app.models import Base, Job, Employer, Category
-from app.schemas import JobCreate, JobUpdate, EmployerCreate, CategoryCreate, JobSearchParams
-from app.auth import security, authenticate_admin, authenticate_admin_plain, generate_csrf_token, verify_csrf_token, create_admin_session, verify_admin_session, clear_admin_session, require_csrf_token
+from app.models import Base, Job, Employer, Category, EmployerAccount
+from app.schemas import JobCreate, JobUpdate, EmployerCreate, CategoryCreate, JobSearchParams, EmployerAccountCreate, EmployerAccountLogin, RefundRequest
+from app.auth import security, authenticate_admin, authenticate_admin_plain, generate_csrf_token, verify_csrf_token, create_admin_session, verify_admin_session, clear_admin_session, require_csrf_token, create_employer_session, verify_employer_session, clear_employer_session, get_password_hash, verify_password
 from app.config import settings
 
 # Create database tables
@@ -37,13 +37,28 @@ templates = Jinja2Templates(directory="app/templates")
 @app.middleware("http")
 async def add_csrf_token(request: Request, call_next):
     """Add CSRF token to all responses"""
-    response = await call_next(request)
-    # Add CSRF token to request scope for templates
+    # Add CSRF token to request scope for templates BEFORE processing
     if not hasattr(request, "scope"):
         request.scope = {}
-    request.scope["csrf_token"] = generate_csrf_token()
+    csrf_token = generate_csrf_token()
+    request.scope["csrf_token"] = csrf_token
+    print(f"DEBUG: Middleware - Generated CSRF token: {csrf_token}")
+    
+    response = await call_next(request)
     return response
 
+
+# Chrome DevTools configuration (optional - stops 404 logs)
+@app.get("/.well-known/appspecific/com.chrome.devtools.json")
+async def chrome_devtools_config():
+    """Return config for Chrome DevTools to stop 404 logs and provide app context"""
+    return {
+        "version": "1.0",
+        "name": "Job Board",
+        "description": "FastAPI job board with employer management",
+        "framework": "FastAPI",
+        "features": ["HTMX", "Stripe", "Employer Accounts"]
+    }
 
 # Public routes
 @app.get("/", response_class=HTMLResponse)
@@ -177,6 +192,368 @@ async def sitemap(db: Session = Depends(get_db)):
     sitemap_content += '</urlset>'
     
     return sitemap_content
+
+
+# Employer routes
+@app.get("/employer/register", response_class=HTMLResponse)
+async def employer_register_form(request: Request):
+    """Employer registration form"""
+    if not settings.employer_registration_enabled:
+        raise HTTPException(status_code=404, detail="Employer registration is disabled")
+    
+    return templates.TemplateResponse("employer/register.html", {"request": request})
+
+
+@app.post("/employer/register")
+async def employer_register(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db)
+):
+    """Register a new employer account"""
+    print("DEBUG: employer_register called")
+    if not settings.employer_registration_enabled:
+        raise HTTPException(status_code=404, detail="Employer registration is disabled")
+
+    form_data = await request.form()
+    print(f"DEBUG: form_data: {dict(form_data)}")
+
+    # Check if email already exists
+    existing_account = db.query(EmployerAccount).filter(
+        EmployerAccount.email == form_data.get("email")
+    ).first()
+
+    if existing_account:
+        print("DEBUG: Email already exists")
+        return templates.TemplateResponse(
+            "employer/register.html",
+            {
+                "request": request,
+                "error": "An account with this email already exists",
+                "form_data": dict(form_data)
+            }
+        )
+
+    # Create employer account
+    employer_account = EmployerAccount(
+        email=form_data.get("email"),
+        password_hash=get_password_hash(form_data.get("password")),
+        company_name=form_data.get("company_name"),
+        contact_name=form_data.get("contact_name"),
+        phone=form_data.get("phone"),
+        website=form_data.get("website")
+    )
+
+    db.add(employer_account)
+    db.commit()
+    db.refresh(employer_account)
+    print(f"DEBUG: Created employer_account with id: {employer_account.id}")
+
+    # Create associated employer record
+    employer = Employer(
+        name=employer_account.company_name,
+        website=employer_account.website,
+        account_id=employer_account.id
+    )
+
+    db.add(employer)
+    db.commit()
+    print(f"DEBUG: Created employer with id: {employer.id}")
+
+    # Create session and redirect to employer dashboard
+    print(f"DEBUG: Creating session for employer_account_id: {employer_account.id}")
+    create_employer_session(response, employer_account.id)
+    print("DEBUG: Session created, redirecting to dashboard")
+    response.headers["Location"] = "/employer/dashboard"
+    response.status_code = 302
+    return response
+
+
+@app.get("/employer/login", response_class=HTMLResponse)
+async def employer_login_form(request: Request):
+    """Employer login form"""
+    return templates.TemplateResponse("employer/login.html", {"request": request})
+
+
+@app.post("/employer/login")
+async def employer_login(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db)
+):
+    """Employer login"""
+    print("DEBUG: employer_login called")
+    form_data = await request.form()
+    email = form_data.get("email")
+    password = form_data.get("password")
+    print(f"DEBUG: email: {email}")
+
+    # Find employer account
+    employer_account = db.query(EmployerAccount).filter(
+        EmployerAccount.email == email,
+        EmployerAccount.is_active == True
+    ).first()
+
+    if not employer_account:
+        print("DEBUG: No employer account found")
+        return templates.TemplateResponse(
+            "employer/login.html",
+            {
+                "request": request,
+                "error": "Invalid email or password",
+                "email": email
+            }
+        )
+
+    print(f"DEBUG: Found employer account with id: {employer_account.id}")
+    
+    if not verify_password(password, employer_account.password_hash):
+        print("DEBUG: Password verification failed")
+        return templates.TemplateResponse(
+            "employer/login.html",
+            {
+                "request": request,
+                "error": "Invalid email or password",
+                "email": email
+            }
+        )
+
+    print("DEBUG: Password verified successfully")
+
+    # Update last login
+    employer_account.last_login = datetime.now(timezone.utc)
+    db.commit()
+
+    # Create session and redirect to dashboard
+    print(f"DEBUG: Creating session for employer_account_id: {employer_account.id}")
+    create_employer_session(response, employer_account.id)
+    print("DEBUG: Session created, redirecting to dashboard")
+    response.headers["Location"] = "/employer/dashboard"
+    response.status_code = 302
+    return response
+
+
+@app.post("/employer/logout")
+async def employer_logout(response: Response):
+    """Employer logout"""
+    clear_employer_session(response)
+    return RedirectResponse(url="/", status_code=302)
+
+
+@app.get("/employer/dashboard", response_class=HTMLResponse)
+async def employer_dashboard(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Employer dashboard"""
+    print("DEBUG: employer_dashboard called")
+    employer_account_id = verify_employer_session(request)
+    print(f"DEBUG: employer_account_id: {employer_account_id}")
+    
+    if not employer_account_id:
+        print("DEBUG: No valid session, redirecting to login")
+        return RedirectResponse(url="/employer/login", status_code=302)
+
+    employer_account = db.query(EmployerAccount).filter(
+        EmployerAccount.id == employer_account_id
+    ).first()
+
+    if not employer_account:
+        print("DEBUG: No employer account found, redirecting to login")
+        return RedirectResponse(url="/employer/login", status_code=302)
+
+    print(f"DEBUG: Found employer account: {employer_account.email}")
+
+    # Get employer's jobs
+    jobs = db.query(Job).filter(
+        Job.employer_account_id == employer_account_id
+    ).order_by(Job.created_at.desc()).all()
+
+    print(f"DEBUG: Found {len(jobs)} jobs for employer")
+
+    # Check for payment success message
+    payment_success = request.query_params.get("payment") == "success"
+    print(f"DEBUG: payment_success = {payment_success}")
+    
+    return templates.TemplateResponse(
+        "employer/dashboard.html",
+        {
+            "request": request,
+            "employer_account": employer_account,
+            "jobs": jobs,
+            "payment_success": payment_success
+        }
+    )
+
+
+@app.get("/employer/jobs/new", response_class=HTMLResponse)
+async def employer_new_job_form(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """New job form for employers"""
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    # Check job limit
+    if settings.max_jobs_per_employer:
+        job_count = db.query(Job).filter(
+            Job.employer_account_id == employer_account_id
+        ).count()
+        
+        if job_count >= settings.max_jobs_per_employer:
+            return templates.TemplateResponse(
+                "employer/error.html",
+                {
+                    "request": request,
+                    "error": f"You have reached the maximum number of jobs ({settings.max_jobs_per_employer})"
+                }
+            )
+    
+    categories = db.query(Category).all()
+    employers = db.query(Employer).filter(
+        Employer.account_id == employer_account_id
+    ).all()
+    
+    return templates.TemplateResponse(
+        "employer/new_job.html",
+        {
+            "request": request,
+            "categories": categories,
+            "employers": employers,
+            "settings": settings
+        }
+    )
+
+
+@app.post("/employer/jobs/new")
+async def employer_create_job(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Create a new job for employer"""
+    print("DEBUG: employer_create_job called")
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    form_data = await request.form()
+    print(f"DEBUG: form_data keys: {list(form_data.keys())}")
+    
+    # Validate CSRF token
+    csrf_token = form_data.get("csrf_token")
+    print(f"DEBUG: csrf_token from form: {csrf_token}")
+    if not csrf_token or not verify_csrf_token(csrf_token):
+        print(f"DEBUG: CSRF validation failed - token: {csrf_token}")
+        raise HTTPException(status_code=403, detail="Invalid CSRF token")
+    print("DEBUG: CSRF validation passed")
+    
+    # Validate salary range if required
+    if settings.salary_range_required:
+        salary_min = form_data.get("salary_min")
+        salary_max = form_data.get("salary_max")
+        if not salary_min or not salary_max:
+            return templates.TemplateResponse(
+                "employer/new_job.html",
+                {
+                    "request": request,
+                    "error": "Salary range is required",
+                    "form_data": dict(form_data)
+                }
+            )
+    
+    # Create job
+    job_data = {
+        "title": form_data.get("title"),
+        "description": form_data.get("description"),
+        "tags": form_data.get("tags"),
+        "salary_min": int(form_data.get("salary_min")) if form_data.get("salary_min") else None,
+        "salary_max": int(form_data.get("salary_max")) if form_data.get("salary_max") else None,
+        "apply_url": form_data.get("apply_url"),
+        "employer_id": int(form_data.get("employer_id")),
+        "category_id": int(form_data.get("category_id")) if form_data.get("category_id") else None,
+        "employer_account_id": employer_account_id,
+        "payment_amount": settings.job_post_price
+    }
+    
+    job = Job(**job_data)
+    db.add(job)
+    db.commit()
+    db.refresh(job)
+    
+    # Redirect to payment
+    return RedirectResponse(url=f"/employer/jobs/{job.id}/payment", status_code=302)
+
+
+@app.get("/employer/jobs/{job_id}/payment", response_class=HTMLResponse)
+async def employer_job_payment(
+    request: Request,
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """Job payment page"""
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.employer_account_id == employer_account_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if job.status == "published":
+        return RedirectResponse(url=f"/employer/jobs/{job.id}", status_code=302)
+    
+    return templates.TemplateResponse(
+        "employer/job_payment.html",
+        {
+            "request": request,
+            "job": job,
+            "stripe_publishable_key": settings.stripe_publishable_key,
+            "settings": settings
+        }
+    )
+
+
+@app.post("/employer/jobs/{job_id}/refund")
+async def employer_request_refund(
+    request: Request,
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """Request a refund for a job"""
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.employer_account_id == employer_account_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    if not job.can_refund:
+        raise HTTPException(status_code=400, detail="Job is not eligible for refund")
+    
+    form_data = await request.form()
+    reason = form_data.get("reason")
+    
+    job.refund_requested_at = datetime.now(timezone.utc)
+    job.refund_reason = reason
+    job.status = "refunded"
+    
+    db.commit()
+    
+    # TODO: Process refund through Stripe
+    # For now, just mark as refunded
+    
+    return RedirectResponse(url="/employer/dashboard", status_code=302)
 
 
 # Admin routes
@@ -415,13 +792,13 @@ async def update_job(
     return {"status": "success", "message": "Job updated successfully"}
 
 
-# Stripe integration
+# Stripe integration (Mock for development)
 @app.post("/stripe/create-checkout-session")
 async def create_checkout_session(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Create Stripe checkout session"""
+    """Create Stripe checkout session (Mock for development)"""
     form_data = await request.form()
     job_id = int(form_data.get("job_id"))
     
@@ -429,28 +806,21 @@ async def create_checkout_session(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    try:
-        checkout_session = stripe.checkout.Session.create(
-            payment_method_types=["card"],
-            line_items=[
-                {
-                    "price": settings.stripe_price_id,
-                    "quantity": 1,
-                },
-            ],
-            mode="payment",
-            success_url=form_data.get("success_url"),
-            cancel_url=form_data.get("cancel_url"),
-            metadata={"job_id": job_id},
-        )
-        
-        # Update job with payment intent
-        job.stripe_payment_intent_id = checkout_session.payment_intent
-        db.commit()
-        
-        return {"id": checkout_session.id}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    # Mock successful payment for development
+    print(f"DEBUG: Mock Stripe payment for job {job_id}")
+    
+    # Update job as if payment was successful
+    job.status = "published"
+    job.payment_completed = True
+    job.published_at = datetime.now(timezone.utc)
+    job.expires_at = datetime.now(timezone.utc) + timedelta(days=settings.job_expiry_days)
+    job.stripe_payment_intent_id = f"mock_payment_{job_id}_{datetime.now().timestamp()}"
+    db.commit()
+    
+    print(f"DEBUG: Job {job_id} marked as published")
+    
+    # Return success response
+    return {"id": f"mock_session_{job_id}"}
 
 
 @app.post("/stripe/webhook")

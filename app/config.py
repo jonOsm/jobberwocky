@@ -22,6 +22,12 @@ class Settings(BaseSettings):
     salary_range_required: bool = True
     job_expiry_days: int = 30
     
+    # Employer Settings
+    refund_window_hours: int = 4  # Hours after posting to allow refunds
+    employer_registration_enabled: bool = True
+    job_editing_enabled: bool = True
+    max_jobs_per_employer: Optional[int] = None  # None = unlimited
+    
     # Security
     csrf_secret: str = "csrf-secret-key-change-in-production"
     

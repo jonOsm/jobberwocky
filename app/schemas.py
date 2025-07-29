@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, List
-from pydantic import BaseModel, HttpUrl, validator, Field
+from pydantic import BaseModel, HttpUrl, validator, Field, EmailStr
 
 
 class JobBase(BaseModel):
@@ -35,7 +35,7 @@ class JobUpdate(BaseModel):
     apply_url: Optional[HttpUrl] = None
     employer_id: Optional[int] = None
     category_id: Optional[int] = None
-    status: Optional[str] = Field(None, pattern="^(draft|published|expired)$")
+    status: Optional[str] = Field(None, pattern="^(draft|published|expired|refunded)$")
 
 
 class JobResponse(JobBase):
@@ -47,6 +47,8 @@ class JobResponse(JobBase):
     published_at: Optional[datetime] = None
     expires_at: Optional[datetime] = None
     is_expired: bool
+    can_refund: bool
+    payment_amount: Optional[int] = None
     
     class Config:
         from_attributes = True
@@ -68,6 +70,42 @@ class EmployerResponse(EmployerBase):
     
     class Config:
         from_attributes = True
+
+
+# Employer Account Schemas
+class EmployerAccountBase(BaseModel):
+    email: EmailStr
+    company_name: str = Field(..., min_length=1, max_length=255)
+    contact_name: str = Field(..., min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    website: Optional[HttpUrl] = None
+
+
+class EmployerAccountCreate(EmployerAccountBase):
+    password: str = Field(..., min_length=8)
+
+
+class EmployerAccountLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class EmployerAccountResponse(EmployerAccountBase):
+    id: int
+    is_active: bool
+    created_at: datetime
+    last_login: Optional[datetime] = None
+    
+    class Config:
+        from_attributes = True
+
+
+class EmployerAccountUpdate(BaseModel):
+    company_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    contact_name: Optional[str] = Field(None, min_length=1, max_length=255)
+    phone: Optional[str] = Field(None, max_length=50)
+    website: Optional[HttpUrl] = None
+    password: Optional[str] = Field(None, min_length=8)
 
 
 class CategoryBase(BaseModel):
@@ -93,10 +131,15 @@ class JobSearchParams(BaseModel):
     category: Optional[str] = None
     tags: Optional[str] = None
     employer: Optional[str] = None
-    status: Optional[str] = Field(None, pattern="^(draft|published|expired)$")
+    status: Optional[str] = Field(None, pattern="^(draft|published|expired|refunded)$")
 
 
 class StripeCheckoutRequest(BaseModel):
     job_id: int
     success_url: HttpUrl
-    cancel_url: HttpUrl 
+    cancel_url: HttpUrl
+
+
+class RefundRequest(BaseModel):
+    job_id: int
+    reason: str = Field(..., min_length=10, max_length=1000) 
