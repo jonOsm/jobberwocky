@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Job - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="/admin" class="hover:text-blue-600">Dashboard</a>
+            <span class="mx-2">→</span>
+            <a href="/admin/jobs/new" class="hover:text-blue-600">Jobs</a>
+            <span class="mx-2">→</span>
+            <span>{{ job.title }}</span>
+        </nav>
+        <div class="flex justify-between items-start">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Edit Job</h1>
+                <p class="text-gray-600 mt-2">{{ job.title }}</p>
+            </div>
+            <div class="flex space-x-4">
+                <a 
+                    href="/jobs/{{ job.id }}" 
+                    target="_blank"
+                    class="inline-flex items-center px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                    </svg>
+                    View Job
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status banner -->
+    <div class="mb-6">
+        {% if job.status == 'published' %}
+        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium">Published</span>
+                {% if job.published_at %}
+                <span class="ml-2 text-sm">on {{ job.published_at.strftime('%B %d, %Y') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% elif job.status == 'draft' %}
+        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span class="font-medium">Draft</span>
+            </div>
+        </div>
+        {% elif job.status == 'expired' %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                <span class="font-medium">Expired</span>
+                {% if job.expires_at %}
+                <span class="ml-2 text-sm">on {{ job.expires_at.strftime('%B %d, %Y') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Job form -->
+    <div class="bg-white rounded-lg shadow-sm border p-8">
+        <form 
+            hx-patch="/admin/jobs/{{ job.id }}" 
+            hx-target="#form-response" 
+            hx-swap="outerHTML"
+            class="space-y-6"
+        >
+            <!-- CSRF token -->
+            <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
+            
+            <!-- Response area -->
+            <div id="form-response"></div>
+            
+            <!-- Job title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                    Job Title *
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    value="{{ job.title }}"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- Employer -->
+            <div>
+                <label for="employer_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Employer *
+                </label>
+                <select 
+                    id="employer_id" 
+                    name="employer_id" 
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    {% for employer in employers %}
+                    <option value="{{ employer.id }}" {% if employer.id == job.employer_id %}selected{% endif %}>
+                        {{ employer.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                </label>
+                <select 
+                    id="category_id" 
+                    name="category_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">No category</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if job.category_id and category.id == job.category_id %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Job description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Job Description *
+                </label>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    rows="8"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >{{ job.description }}</textarea>
+            </div>
+
+            <!-- Tags -->
+            <div>
+                <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
+                    Tags
+                </label>
+                <input 
+                    type="text" 
+                    id="tags" 
+                    name="tags"
+                    value="{{ job.tags or '' }}"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="flutter, mobile, dart, remote"
+                >
+            </div>
+
+            <!-- Salary range -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="salary_min" class="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum Salary
+                    </label>
+                    <input 
+                        type="number" 
+                        id="salary_min" 
+                        name="salary_min"
+                        value="{{ job.salary_min or '' }}"
+                        min="0"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+                
+                <div>
+                    <label for="salary_max" class="block text-sm font-medium text-gray-700 mb-2">
+                        Maximum Salary
+                    </label>
+                    <input 
+                        type="number" 
+                        id="salary_max" 
+                        name="salary_max"
+                        value="{{ job.salary_max or '' }}"
+                        min="0"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                </div>
+                
+                <div>
+                    <label for="salary_currency" class="block text-sm font-medium text-gray-700 mb-2">
+                        Currency
+                    </label>
+                    <select 
+                        id="salary_currency" 
+                        name="salary_currency"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="USD" {% if job.salary_currency == 'USD' %}selected{% endif %}>USD</option>
+                        <option value="EUR" {% if job.salary_currency == 'EUR' %}selected{% endif %}>EUR</option>
+                        <option value="GBP" {% if job.salary_currency == 'GBP' %}selected{% endif %}>GBP</option>
+                        <option value="CAD" {% if job.salary_currency == 'CAD' %}selected{% endif %}>CAD</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Apply URL -->
+            <div>
+                <label for="apply_url" class="block text-sm font-medium text-gray-700 mb-2">
+                    Application URL *
+                </label>
+                <input 
+                    type="url" 
+                    id="apply_url" 
+                    name="apply_url" 
+                    value="{{ job.apply_url }}"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+            </div>
+
+            <!-- Status management -->
+            <div class="border-t pt-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Status Management</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Current Status
+                        </label>
+                        <div class="text-sm text-gray-600">
+                            {% if job.status == 'published' %}
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Published
+                            </span>
+                            {% elif job.status == 'draft' %}
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Draft
+                            </span>
+                            {% elif job.status == 'expired' %}
+                            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                Expired
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="status" class="block text-sm font-medium text-gray-700 mb-2">
+                            Change Status
+                        </label>
+                        <select 
+                            id="status" 
+                            name="status"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >
+                            <option value="">Keep current status</option>
+                            <option value="draft">Set to Draft</option>
+                            <option value="published">Publish Now</option>
+                            <option value="expired">Mark as Expired</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button 
+                            type="submit"
+                            class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                        >
+                            Update Job
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form actions -->
+            <div class="flex justify-between pt-6 border-t">
+                <a 
+                    href="/admin" 
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                    Back to Dashboard
+                </a>
+                
+                <div class="flex space-x-4">
+                    <a 
+                        href="/jobs/{{ job.id }}" 
+                        target="_blank"
+                        class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                    >
+                        View Job
+                    </a>
+                    <button 
+                        type="submit"
+                        class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Real-time validation
+    document.addEventListener('htmx:beforeRequest', function(event) {
+        const form = event.target;
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            const responseDiv = document.getElementById('form-response');
+            responseDiv.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Please fill in all required fields.</div>';
+        }
+    });
+    
+    // Salary validation
+    document.getElementById('salary_min').addEventListener('input', function() {
+        const minSalary = parseInt(this.value) || 0;
+        const maxSalaryField = document.getElementById('salary_max');
+        const maxSalary = parseInt(maxSalaryField.value) || 0;
+        
+        if (maxSalary > 0 && minSalary > maxSalary) {
+            maxSalaryField.classList.add('border-red-500');
+        } else {
+            maxSalaryField.classList.remove('border-red-500');
+        }
+    });
+    
+    document.getElementById('salary_max').addEventListener('input', function() {
+        const maxSalary = parseInt(this.value) || 0;
+        const minSalaryField = document.getElementById('salary_min');
+        const minSalary = parseInt(minSalaryField.value) || 0;
+        
+        if (minSalary > 0 && maxSalary < minSalary) {
+            this.classList.add('border-red-500');
+        } else {
+            this.classList.remove('border-red-500');
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}New Job - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-8">
+        <nav class="text-sm text-gray-600 mb-4">
+            <a href="/admin" class="hover:text-blue-600">Dashboard</a>
+            <span class="mx-2">→</span>
+            <span>New Job</span>
+        </nav>
+        <h1 class="text-3xl font-bold text-gray-900">Create New Job</h1>
+        <p class="text-gray-600 mt-2">Add a new job posting to the board</p>
+    </div>
+
+    <!-- Job form -->
+    <div class="bg-white rounded-lg shadow-sm border p-8">
+        <form 
+            hx-post="/admin/jobs/new" 
+            hx-target="#form-response" 
+            hx-swap="outerHTML"
+            class="space-y-6"
+        >
+            <!-- CSRF token -->
+            <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
+            
+            <!-- Response area -->
+            <div id="form-response"></div>
+            
+            <!-- Job title -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                    Job Title *
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    name="title" 
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., Senior Flutter Developer"
+                >
+            </div>
+
+            <!-- Employer -->
+            <div>
+                <label for="employer_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Employer *
+                </label>
+                <select 
+                    id="employer_id" 
+                    name="employer_id" 
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">Select an employer</option>
+                    {% for employer in employers %}
+                    <option value="{{ employer.id }}">{{ employer.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Category -->
+            <div>
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                </label>
+                <select 
+                    id="category_id" 
+                    name="category_id"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                    <option value="">Select a category (optional)</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}">{{ category.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Job description -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                    Job Description *
+                </label>
+                <textarea 
+                    id="description" 
+                    name="description" 
+                    rows="8"
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Describe the role, responsibilities, requirements, and benefits..."
+                ></textarea>
+                <p class="text-sm text-gray-500 mt-1">Use markdown formatting for better readability</p>
+            </div>
+
+            <!-- Tags -->
+            <div>
+                <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">
+                    Tags
+                </label>
+                <input 
+                    type="text" 
+                    id="tags" 
+                    name="tags"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="flutter, mobile, dart, remote"
+                >
+                <p class="text-sm text-gray-500 mt-1">Comma-separated tags for better searchability</p>
+            </div>
+
+            <!-- Salary range -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label for="salary_min" class="block text-sm font-medium text-gray-700 mb-2">
+                        Minimum Salary
+                    </label>
+                    <input 
+                        type="number" 
+                        id="salary_min" 
+                        name="salary_min"
+                        min="0"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="90000"
+                    >
+                </div>
+                
+                <div>
+                    <label for="salary_max" class="block text-sm font-medium text-gray-700 mb-2">
+                        Maximum Salary
+                    </label>
+                    <input 
+                        type="number" 
+                        id="salary_max" 
+                        name="salary_max"
+                        min="0"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="120000"
+                    >
+                </div>
+                
+                <div>
+                    <label for="salary_currency" class="block text-sm font-medium text-gray-700 mb-2">
+                        Currency
+                    </label>
+                    <select 
+                        id="salary_currency" 
+                        name="salary_currency"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                        <option value="GBP">GBP</option>
+                        <option value="CAD">CAD</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Apply URL -->
+            <div>
+                <label for="apply_url" class="block text-sm font-medium text-gray-700 mb-2">
+                    Application URL *
+                </label>
+                <input 
+                    type="url" 
+                    id="apply_url" 
+                    name="apply_url" 
+                    required
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="https://company.com/careers/12345"
+                >
+                <p class="text-sm text-gray-500 mt-1">Direct link to the job application page</p>
+            </div>
+
+            <!-- Form actions -->
+            <div class="flex justify-end space-x-4 pt-6 border-t">
+                <a 
+                    href="/admin" 
+                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+                >
+                    Cancel
+                </a>
+                <button 
+                    type="submit"
+                    class="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                    Create Job
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Real-time validation
+    document.addEventListener('htmx:beforeRequest', function(event) {
+        const form = event.target;
+        const requiredFields = form.querySelectorAll('[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            event.preventDefault();
+            // Show error message
+            const responseDiv = document.getElementById('form-response');
+            responseDiv.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Please fill in all required fields.</div>';
+        }
+    });
+    
+    // Salary validation
+    document.getElementById('salary_min').addEventListener('input', function() {
+        const minSalary = parseInt(this.value) || 0;
+        const maxSalaryField = document.getElementById('salary_max');
+        const maxSalary = parseInt(maxSalaryField.value) || 0;
+        
+        if (maxSalary > 0 && minSalary > maxSalary) {
+            maxSalaryField.classList.add('border-red-500');
+        } else {
+            maxSalaryField.classList.remove('border-red-500');
+        }
+    });
+    
+    document.getElementById('salary_max').addEventListener('input', function() {
+        const maxSalary = parseInt(this.value) || 0;
+        const minSalaryField = document.getElementById('salary_min');
+        const minSalary = parseInt(minSalaryField.value) || 0;
+        
+        if (minSalary > 0 && maxSalary < minSalary) {
+            this.classList.add('border-red-500');
+        } else {
+            this.classList.remove('border-red-500');
+        }
+    });
+</script>
+{% endblock %} 

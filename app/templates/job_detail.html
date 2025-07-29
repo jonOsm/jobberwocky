@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} at {{ job.employer.name }} - Job Board{% endblock %}
+
+{% block head %}
+<!-- Google JobPosting Schema -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "JobPosting",
+  "title": "{{ job.title }}",
+  "description": "{{ job.description|replace('"', '\\"')|replace('\n', ' ') }}",
+  "datePosted": "{{ job.published_at.isoformat() if job.published_at else job.created_at.isoformat() }}",
+  "validThrough": "{{ job.expires_at.isoformat() if job.expires_at else '' }}",
+  "employmentType": "FULL_TIME",
+  "hiringOrganization": {
+    "@type": "Organization",
+    "name": "{{ job.employer.name }}"
+    {% if job.employer.website %},
+    "url": "{{ job.employer.website }}"
+    {% endif %}
+  },
+  "jobLocation": {
+    "@type": "Place",
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "US"
+    }
+  },
+  "applicantLocationRequirements": {
+    "@type": "Country",
+    "name": "United States"
+  },
+  "applicationContact": {
+    "@type": "ContactPoint",
+    "url": "{{ job.apply_url }}"
+  }
+  {% if job.salary_min and job.salary_max %},
+  "baseSalary": {
+    "@type": "MonetaryAmount",
+    "currency": "{{ job.salary_currency }}",
+    "value": {
+      "@type": "QuantitativeValue",
+      "minValue": {{ job.salary_min }},
+      "maxValue": {{ job.salary_max }},
+      "unitText": "YEAR"
+    }
+  }
+  {% endif %}
+}
+</script>
+
+<!-- Open Graph tags -->
+<meta property="og:title" content="{{ job.title }} at {{ job.employer.name }}">
+<meta property="og:description" content="{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ request.url }}">
+
+<!-- Twitter Card tags -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="{{ job.title }} at {{ job.employer.name }}">
+<meta name="twitter:description" content="{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}">
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-600 mb-6">
+        <a href="/" class="hover:text-blue-600">Jobs</a>
+        <span class="mx-2">→</span>
+        <span>{{ job.title }}</span>
+    </nav>
+
+    <!-- Job header -->
+    <div class="bg-white rounded-lg shadow-sm border p-8 mb-8">
+        <div class="flex justify-between items-start mb-6">
+            <div class="flex-1">
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ job.title }}</h1>
+                <div class="flex items-center text-lg text-gray-600 mb-4">
+                    <span class="font-medium">{{ job.employer.name }}</span>
+                    {% if job.employer.website %}
+                    <span class="mx-2">•</span>
+                    <a href="{{ job.employer.website }}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800">
+                        Visit Website
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <div class="flex flex-wrap gap-4 text-sm text-gray-600">
+                    {% if job.category %}
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                        {{ job.category.name }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if job.published_at %}
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                        Posted {{ job.published_at.strftime('%B %d, %Y') }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if job.expires_at %}
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Expires {{ job.expires_at.strftime('%B %d, %Y') }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="ml-6">
+                <a 
+                    href="{{ job.apply_url }}" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
+                >
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6.5"></path>
+                    </svg>
+                    Apply Now
+                </a>
+            </div>
+        </div>
+        
+        {% if job.salary_min and job.salary_max %}
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                </svg>
+                <span class="font-medium text-blue-900">Salary Range:</span>
+                <span class="ml-2 text-blue-800">${{ "{:,}".format(job.salary_min) }} - ${{ "{:,}".format(job.salary_max) }} {{ job.salary_currency }}</span>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if job.tags %}
+        <div class="flex flex-wrap gap-2 mb-6">
+            {% for tag in job.tag_list %}
+            <span class="px-3 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Job description -->
+    <div class="bg-white rounded-lg shadow-sm border p-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Job Description</h2>
+        <div class="prose max-w-none">
+            {{ job.description|safe }}
+        </div>
+    </div>
+
+    <!-- Company information -->
+    {% if job.employer.description %}
+    <div class="bg-white rounded-lg shadow-sm border p-8 mt-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">About {{ job.employer.name }}</h2>
+        <div class="prose max-w-none">
+            {{ job.employer.description|safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Related jobs -->
+    <div class="bg-white rounded-lg shadow-sm border p-8 mt-8">
+        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Similar Jobs</h2>
+        <div class="text-center py-8 text-gray-600">
+            <p>More jobs coming soon!</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,79 @@
+{% if jobs %}
+    <div class="text-sm text-gray-600 mb-4">
+        Found {{ jobs|length }} job{{ 's' if jobs|length != 1 else '' }}
+        {% if search_query or selected_category or selected_tags %}
+            matching your criteria
+        {% endif %}
+    </div>
+    
+    <div class="grid gap-6">
+        {% for job in jobs %}
+        <div class="job-card bg-white rounded-lg shadow-sm border p-6 hover:shadow-md">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-2">
+                        <a href="/jobs/{{ job.id }}" class="hover:text-blue-600 transition-colors">
+                            {{ job.title }}
+                        </a>
+                    </h2>
+                    
+                    <div class="flex items-center text-sm text-gray-600 mb-3">
+                        <span class="font-medium">{{ job.employer.name }}</span>
+                        {% if job.category %}
+                        <span class="mx-2">•</span>
+                        <span>{{ job.category.name }}</span>
+                        {% endif %}
+                        {% if job.published_at %}
+                        <span class="mx-2">•</span>
+                        <span>{{ job.published_at.strftime('%b %d, %Y') }}</span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="text-gray-700 mb-4 line-clamp-3">{{ job.description[:200] }}{% if job.description|length > 200 %}...{% endif %}</p>
+                    
+                    {% if job.tags %}
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        {% for tag in job.tag_list %}
+                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    {% if job.salary_min and job.salary_max %}
+                    <div class="text-sm text-gray-600 mb-4">
+                        <span class="font-medium">Salary:</span> ${{ "{:,}".format(job.salary_min) }} - ${{ "{:,}".format(job.salary_max) }} {{ job.salary_currency }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="ml-4">
+                    <a 
+                        href="{{ job.apply_url }}" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+                    >
+                        Apply Now
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-12">
+        <div class="text-gray-400 mb-4">
+            <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No jobs found</h3>
+        <p class="text-gray-600">
+            {% if search_query or selected_category or selected_tags %}
+                Try adjusting your search criteria or browse all jobs.
+            {% else %}
+                No jobs are currently available. Check back soon!
+            {% endif %}
+        </p>
+    </div>
+{% endif %} 
