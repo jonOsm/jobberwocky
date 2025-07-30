@@ -225,12 +225,30 @@ CMD ["uv", "run", "main.py"]
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
+We welcome contributions! Please see our [ROADMAP](ROADMAP.md) for planned features and areas where help is needed.
+
+### How to Contribute
+
+1. **Check the roadmap**: Review [ROADMAP.md](ROADMAP.md) for planned features
+2. **Fork the repository**: Create your own fork
+3. **Create a feature branch**: Work on your changes
+4. **Add tests**: Ensure new functionality is tested
+5. **Submit a pull request**: Include a clear description of your changes
+
+### Areas Needing Help
+
+- Frontend improvements (HTMX, CSS)
+- Backend optimizations (FastAPI, SQLAlchemy)
+- Documentation and tutorials
+- Testing and bug fixes
+- Feature development
+
+### Development Guidelines
+
+- Follow the existing code style
+- Add tests for new functionality
+- Update documentation as needed
+- Ensure all tests pass before submitting
 
 ## License
 
