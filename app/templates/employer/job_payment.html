@@ -3,18 +3,18 @@
 {% block title %}Payment for {{ job.title }}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-slate-900">
     <!-- Header -->
-    <div class="bg-white shadow">
+    <div class="bg-slate-800/90 backdrop-blur-sm shadow-lg border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Complete Payment</h1>
-                    <p class="text-gray-600">Publish your job posting</p>
+                    <h1 class="text-3xl font-bold text-slate-100">Complete Payment</h1>
+                    <p class="text-slate-300">Publish your job posting</p>
                 </div>
                 <div class="flex space-x-4">
                     <a href="/employer/dashboard"
-                       class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                       class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         Back to Dashboard
                     </a>
                 </div>
@@ -23,32 +23,32 @@
     </div>
 
     <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="bg-white shadow sm:rounded-lg">
+        <div class="bg-slate-800/70 backdrop-blur-sm shadow-lg border border-slate-700 rounded-xl">
             <div class="px-4 py-5 sm:p-6">
                 <!-- Job Summary -->
                 <div class="mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Job Summary</h3>
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h4 class="font-medium text-gray-900">{{ job.title }}</h4>
-                        <p class="text-sm text-gray-600 mt-1">{{ job.employer.name }}</p>
+                    <h3 class="text-lg font-medium text-slate-100 mb-4">Job Summary</h3>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="font-medium text-slate-100">{{ job.title }}</h4>
+                        <p class="text-sm text-slate-300 mt-1">{{ job.employer.name }}</p>
                         {% if job.salary_min and job.salary_max %}
-                        <p class="text-sm text-gray-600 mt-1">${{ "{:,}".format(job.salary_min) }} - ${{ "{:,}".format(job.salary_max) }}</p>
+                        <p class="text-sm text-slate-300 mt-1">${{ "{:,}".format(job.salary_min) }} - ${{ "{:,}".format(job.salary_max) }}</p>
                         {% endif %}
                         {% if job.category %}
-                        <p class="text-sm text-gray-600 mt-1">{{ job.category.name }}</p>
+                        <p class="text-sm text-slate-300 mt-1">{{ job.category.name }}</p>
                         {% endif %}
                     </div>
                 </div>
 
                 <!-- Payment Information -->
                 <div class="mb-6">
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Details</h3>
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="text-lg font-medium text-slate-100 mb-4">Payment Details</h3>
+                    <div class="bg-blue-900/50 border border-blue-700 rounded-lg p-4">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm font-medium text-blue-900">Job Posting Fee</span>
-                            <span class="text-lg font-bold text-blue-900">${{ "%.2f"|format((job.payment_amount or settings.job_post_price) / 100) }}</span>
+                            <span class="text-sm font-medium text-blue-200">Job Posting Fee</span>
+                            <span class="text-lg font-bold text-blue-100">${{ "%.2f"|format((job.payment_amount or settings.job_post_price) / 100) }}</span>
                         </div>
-                        <div class="mt-2 text-sm text-blue-700">
+                        <div class="mt-2 text-sm text-blue-100">
                             <p>• Job will be active for {{ settings.job_expiry_days }} days</p>
                             <p>• Refund available within {{ settings.refund_window_hours }} hours of posting</p>
                             <p>• Secure payment processed by Stripe</p>
@@ -58,15 +58,15 @@
 
                 <!-- Payment Form -->
                 <div>
-                    <h3 class="text-lg font-medium text-gray-900 mb-4">Payment Information</h3>
+                    <h3 class="text-lg font-medium text-slate-100 mb-4">Payment Information</h3>
                     <form id="payment-form" class="space-y-4">
-                        <div id="card-element" class="p-3 border border-gray-300 rounded-md">
+                        <div id="card-element" class="p-3 border border-slate-600 rounded-lg bg-slate-700">
                             <!-- Stripe Card Element will be inserted here -->
                         </div>
-                        <div id="card-errors" class="text-red-600 text-sm hidden"></div>
+                        <div id="card-errors" class="text-red-400 text-sm hidden"></div>
                         
                         <button type="submit" id="submit-button"
-                                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
                             <span id="button-text">Pay ${{ "%.2f"|format((job.payment_amount or settings.job_post_price) / 100) }} & Publish Job</span>
                             <span id="spinner" class="hidden">
                                 <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -94,13 +94,14 @@
         style: {
             base: {
                 fontSize: '16px',
-                color: '#424770',
+                color: '#e2e8f0',
                 '::placeholder': {
-                    color: '#aab7c4',
+                    color: '#94a3b8',
                 },
+                backgroundColor: '#374151',
             },
             invalid: {
-                color: '#9e2146',
+                color: '#f87171',
             },
         },
     });

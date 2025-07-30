@@ -3,20 +3,20 @@
 {% block title %}Employer Registration{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
     <div class="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 class="mt-6 text-center text-3xl font-extrabold text-slate-100">
             Register - Create your employer account
         </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
+        <p class="mt-2 text-center text-sm text-slate-300">
             Start posting jobs and finding great candidates
         </p>
     </div>
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div class="bg-slate-800/70 backdrop-blur-sm py-8 px-4 shadow-lg border border-slate-700 sm:rounded-xl sm:px-10">
             {% if error %}
-            <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <div class="mb-4 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
                 {{ error }}
             </div>
             {% endif %}
@@ -25,73 +25,73 @@
                 <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
 
                 <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700">
+                    <label for="email" class="block text-sm font-medium text-slate-200">
                         Email address
                     </label>
                     <div class="mt-1">
                         <input id="email" name="email" type="email" required
                                value="{{ form_data.email if form_data else '' }}"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700">
+                    <label for="password" class="block text-sm font-medium text-slate-200">
                         Password
                     </label>
                     <div class="mt-1">
                         <input id="password" name="password" type="password" required minlength="8"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
-                    <label for="company_name" class="block text-sm font-medium text-gray-700">
+                    <label for="company_name" class="block text-sm font-medium text-slate-200">
                         Company name
                     </label>
                     <div class="mt-1">
                         <input id="company_name" name="company_name" type="text" required
                                value="{{ form_data.company_name if form_data else '' }}"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
-                    <label for="contact_name" class="block text-sm font-medium text-gray-700">
+                    <label for="contact_name" class="block text-sm font-medium text-slate-200">
                         Contact person name
                     </label>
                     <div class="mt-1">
                         <input id="contact_name" name="contact_name" type="text" required
                                value="{{ form_data.contact_name if form_data else '' }}"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
-                    <label for="phone" class="block text-sm font-medium text-gray-700">
+                    <label for="phone" class="block text-sm font-medium text-slate-200">
                         Phone number (optional)
                     </label>
                     <div class="mt-1">
                         <input id="phone" name="phone" type="tel"
                                value="{{ form_data.phone if form_data else '' }}"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
-                    <label for="website" class="block text-sm font-medium text-gray-700">
+                    <label for="website" class="block text-sm font-medium text-slate-200">
                         Company website (optional)
                     </label>
                     <div class="mt-1">
                         <input id="website" name="website" type="url"
                                value="{{ form_data.website if form_data else '' }}"
-                               class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                               class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                     </div>
                 </div>
 
                 <div>
                     <button type="submit"
-                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-blue-500 transition-colors">
                         Create account
                     </button>
                 </div>
@@ -100,16 +100,16 @@
             <div class="mt-6">
                 <div class="relative">
                     <div class="absolute inset-0 flex items-center">
-                        <div class="w-full border-t border-gray-300"></div>
+                        <div class="w-full border-t border-slate-600"></div>
                     </div>
                     <div class="relative flex justify-center text-sm">
-                        <span class="px-2 bg-white text-gray-500">Already have an account?</span>
+                        <span class="px-2 bg-slate-800 text-slate-400">Already have an account?</span>
                     </div>
                 </div>
 
                 <div class="mt-6">
                     <a href="/employer/login"
-                       class="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                       class="w-full flex justify-center py-2 px-4 border border-slate-600 rounded-lg shadow-sm text-sm font-medium text-slate-200 bg-slate-700 hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-800 focus:ring-blue-500 transition-colors">
                         Sign in
                     </a>
                 </div>

@@ -3,18 +3,18 @@
 {% block title %}Post New Job{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-slate-900">
     <!-- Header -->
-    <div class="bg-white shadow">
+    <div class="bg-slate-800/90 backdrop-blur-sm shadow-lg border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Post New Job</h1>
-                    <p class="text-gray-600">Create a new job posting to attract candidates</p>
+                    <h1 class="text-3xl font-bold text-slate-100">Post New Job</h1>
+                    <p class="text-slate-300">Create a new job posting to attract candidates</p>
                 </div>
                 <div class="flex space-x-4">
                     <a href="/employer/dashboard"
-                       class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                       class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         Back to Dashboard
                     </a>
                 </div>
@@ -23,10 +23,10 @@
     </div>
 
     <div class="max-w-3xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div class="bg-white shadow sm:rounded-lg">
+        <div class="bg-slate-800/70 backdrop-blur-sm shadow-lg border border-slate-700 rounded-xl">
             <div class="px-4 py-5 sm:p-6">
                 {% if error %}
-                <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+                <div class="mb-4 bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
                     {{ error }}
                 </div>
                 {% endif %}
@@ -35,89 +35,89 @@
                     <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
 
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700">
+                        <label for="title" class="block text-sm font-medium text-slate-200">
                             Job Title *
                         </label>
                         <div class="mt-1">
                             <input type="text" name="title" id="title" required
                                    value="{{ form_data.title if form_data else '' }}"
-                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                   class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                    placeholder="e.g., Senior Software Engineer">
                         </div>
                     </div>
 
                     <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700">
+                        <label for="description" class="block text-sm font-medium text-slate-200">
                             Job Description *
                         </label>
                         <div class="mt-1">
                             <textarea name="description" id="description" rows="8" required
-                                      class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                      class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                       placeholder="Describe the role, responsibilities, and requirements...">{{ form_data.description if form_data else '' }}</textarea>
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Minimum 10 characters required.</p>
+                        <p class="mt-2 text-sm text-slate-400">Minimum 10 characters required.</p>
                     </div>
 
                     <div>
-                        <label for="tags" class="block text-sm font-medium text-gray-700">
+                        <label for="tags" class="block text-sm font-medium text-slate-200">
                             Tags (optional)
                         </label>
                         <div class="mt-1">
                             <input type="text" name="tags" id="tags"
                                    value="{{ form_data.tags if form_data else '' }}"
-                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                   class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                    placeholder="e.g., python, remote, senior">
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Comma-separated tags to help candidates find your job.</p>
+                        <p class="mt-2 text-sm text-slate-400">Comma-separated tags to help candidates find your job.</p>
                     </div>
 
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <label for="salary_min" class="block text-sm font-medium text-gray-700">
+                            <label for="salary_min" class="block text-sm font-medium text-slate-200">
                                 Minimum Salary {% if settings.salary_range_required %}*{% endif %}
                             </label>
                             <div class="mt-1">
                                 <input type="number" name="salary_min" id="salary_min" min="0"
                                        value="{{ form_data.salary_min if form_data else '' }}"
-                                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                       class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                        placeholder="50000">
                             </div>
                         </div>
 
                         <div>
-                            <label for="salary_max" class="block text-sm font-medium text-gray-700">
+                            <label for="salary_max" class="block text-sm font-medium text-slate-200">
                                 Maximum Salary {% if settings.salary_range_required %}*{% endif %}
                             </label>
                             <div class="mt-1">
                                 <input type="number" name="salary_max" id="salary_max" min="0"
                                        value="{{ form_data.salary_max if form_data else '' }}"
-                                       class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                       class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                        placeholder="80000">
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label for="apply_url" class="block text-sm font-medium text-gray-700">
+                        <label for="apply_url" class="block text-sm font-medium text-slate-200">
                             Application URL *
                         </label>
                         <div class="mt-1">
                             <input type="url" name="apply_url" id="apply_url" required
                                    value="{{ form_data.apply_url if form_data else '' }}"
-                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                   class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                    placeholder="https://yourcompany.com/careers/apply">
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Where candidates should apply for this position.</p>
+                        <p class="mt-2 text-sm text-slate-400">Where candidates should apply for this position.</p>
                     </div>
 
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <label for="employer_id" class="block text-sm font-medium text-gray-700">
+                            <label for="employer_id" class="block text-sm font-medium text-slate-200">
                                 Company *
                             </label>
                             <div class="mt-1">
                                 <select name="employer_id" id="employer_id" required
-                                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                                     <option value="">Select a company</option>
                                     {% for employer in employers %}
                                     <option value="{{ employer.id }}" {% if form_data and form_data.employer_id|int == employer.id %}selected{% endif %}>
@@ -129,12 +129,12 @@
                         </div>
 
                         <div>
-                            <label for="category_id" class="block text-sm font-medium text-gray-700">
+                            <label for="category_id" class="block text-sm font-medium text-slate-200">
                                 Category (optional)
                             </label>
                             <div class="mt-1">
                                 <select name="category_id" id="category_id"
-                                        class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                                        class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100">
                                     <option value="">Select a category</option>
                                     {% for category in categories %}
                                     <option value="{{ category.id }}" {% if form_data and form_data.category_id|int == category.id %}selected{% endif %}>
@@ -146,7 +146,7 @@
                         </div>
                     </div>
 
-                    <div class="bg-blue-50 border border-blue-200 rounded-md p-4">
+                    <div class="bg-blue-900/50 border border-blue-700 rounded-lg p-4">
                         <div class="flex">
                             <div class="flex-shrink-0">
                                 <svg class="h-5 w-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -154,8 +154,8 @@
                                 </svg>
                             </div>
                             <div class="ml-3">
-                                <h3 class="text-sm font-medium text-blue-800">Job Posting Fee</h3>
-                                <div class="mt-2 text-sm text-blue-700">
+                                <h3 class="text-sm font-medium text-blue-200">Job Posting Fee</h3>
+                                <div class="mt-2 text-sm text-blue-100">
                                     <p>There is a one-time fee of ${{ "%.2f"|format(settings.job_post_price / 100) }} to publish this job posting.</p>
                                     <p class="mt-1">Jobs are active for {{ settings.job_expiry_days }} days and can be refunded within {{ settings.refund_window_hours }} hours of posting.</p>
                                 </div>
@@ -165,11 +165,11 @@
 
                     <div class="flex justify-end space-x-3">
                         <a href="/employer/dashboard"
-                           class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                           class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                             Cancel
                         </a>
                         <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                             Create Job & Continue to Payment
                         </button>
                     </div>

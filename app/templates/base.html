@@ -18,7 +18,7 @@
         }
         .job-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
         }
         .search-results {
             transition: opacity 0.3s ease-in-out;
@@ -26,60 +26,74 @@
         .htmx-request {
             opacity: 0.6;
         }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
     </style>
     
     {% block head %}{% endblock %}
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-slate-900 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
+    <nav class="bg-slate-800/90 backdrop-blur-sm shadow-lg border-b border-slate-700 sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
+            <div class="flex justify-between h-14">
                 <div class="flex items-center">
-                    <a href="/" class="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
+                    <a href="/" class="text-xl font-bold text-slate-100 hover:text-blue-400 transition-colors">
                         Job Board
                     </a>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                <div class="flex items-center space-x-3">
+                    <a href="/" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                         Jobs
                     </a>
                     
                     {% if request.scope.is_employer %}
                         <!-- Employer Navigation -->
-                        <a href="/employer/dashboard" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold">
+                        <a href="/employer/dashboard" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold transition-colors">
                             Dashboard
                         </a>
-                        <a href="/employer/jobs/new" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/employer/jobs/new" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Post Job
                         </a>
                         <form method="POST" action="/employer/logout" class="inline">
                             <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
-                            <button type="submit" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            <button type="submit" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 Logout
                             </button>
                         </form>
                     {% elif request.scope.is_admin %}
                         <!-- Admin Navigation -->
-                        <a href="/admin" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold">
+                        <a href="/admin" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold transition-colors">
                             Admin Dashboard
                         </a>
-                        <a href="/admin/jobs/new" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/admin/jobs/new" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             New Job
                         </a>
                         <form method="POST" action="/admin/logout" class="inline">
                             <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
-                            <button type="submit" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            <button type="submit" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 Logout
                             </button>
                         </form>
                     {% else %}
                         <!-- Public Navigation (not authenticated) -->
-                        <a href="/employer/login" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/employer/login" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Employer Login
                         </a>
                         {% if request.scope.settings.employer_registration_enabled %}
-                        <a href="/employer/register" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                        <a href="/employer/register" class="text-slate-300 hover:text-slate-100 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                             Register
                         </a>
                         {% endif %}
@@ -90,21 +104,21 @@
     </nav>
 
     <!-- Main content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t mt-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div class="text-center text-gray-500 text-sm">
+    <footer class="bg-slate-800/90 backdrop-blur-sm border-t border-slate-700 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center text-slate-400 text-sm">
                 <p>&copy; 2024 Job Board. Built with FastAPI and HTMX.</p>
             </div>
         </div>
     </footer>
 
     <!-- HTMX indicators -->
-    <div id="htmx-indicator" class="fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-md shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
+    <div id="htmx-indicator" class="fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-md shadow-lg opacity-0 transition-opacity duration-300 pointer-events-none">
         Loading...
     </div>
 

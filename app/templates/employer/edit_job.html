@@ -3,24 +3,24 @@
 {% block title %}Edit Job{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100">
+<div class="min-h-screen bg-slate-900">
     <!-- Header -->
-    <div class="bg-white shadow">
+    <div class="bg-slate-800/90 backdrop-blur-sm shadow-lg border-b border-slate-700">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center py-6">
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900">Edit Job</h1>
-                    <p class="text-gray-600">{{ job.title }}</p>
+                    <h1 class="text-3xl font-bold text-slate-100">Edit Job</h1>
+                    <p class="text-slate-300">{{ job.title }}</p>
                 </div>
                 <div class="flex space-x-4">
                     <a href="/employer/dashboard"
-                       class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                       class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                         Back to Dashboard
                     </a>
                     <a 
                         href="/jobs/{{ job.id }}" 
                         target="_blank"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm"
                     >
                         View Job
                     </a>
@@ -33,7 +33,7 @@
         <!-- Status banner -->
         <div class="mb-6">
             {% if job.status == 'published' %}
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            <div class="bg-green-900/50 border border-green-700 text-green-200 px-4 py-3 rounded-lg">
                 <div class="flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -45,7 +45,7 @@
                 </div>
             </div>
             {% elif job.status == 'draft' %}
-            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+            <div class="bg-yellow-900/50 border border-yellow-700 text-yellow-200 px-4 py-3 rounded-lg">
                 <div class="flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -54,7 +54,7 @@
                 </div>
             </div>
             {% elif job.status == 'expired' %}
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <div class="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg">
                 <div class="flex items-center">
                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -69,7 +69,7 @@
         </div>
 
         <!-- Job form -->
-        <div class="bg-white shadow sm:rounded-lg">
+        <div class="bg-slate-800/70 backdrop-blur-sm shadow-lg border border-slate-700 rounded-xl">
             <div class="px-4 py-5 sm:p-6">
                 <form 
                     method="POST"
@@ -81,7 +81,7 @@
                     
                     <!-- Job title -->
                     <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700">
+                        <label for="title" class="block text-sm font-medium text-slate-200">
                             Job Title *
                         </label>
                         <div class="mt-1">
@@ -91,14 +91,14 @@
                                 name="title" 
                                 value="{{ job.title }}"
                                 required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                             >
                         </div>
                     </div>
 
                     <!-- Employer -->
                     <div>
-                        <label for="employer_id" class="block text-sm font-medium text-gray-700">
+                        <label for="employer_id" class="block text-sm font-medium text-slate-200">
                             Employer *
                         </label>
                         <div class="mt-1">
@@ -106,7 +106,7 @@
                                 id="employer_id" 
                                 name="employer_id" 
                                 required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                             >
                                 {% for employer in employers %}
                                 <option value="{{ employer.id }}" {% if employer.id == job.employer_id %}selected{% endif %}>
@@ -119,14 +119,14 @@
 
                     <!-- Category -->
                     <div>
-                        <label for="category_id" class="block text-sm font-medium text-gray-700">
+                        <label for="category_id" class="block text-sm font-medium text-slate-200">
                             Category
                         </label>
                         <div class="mt-1">
                             <select 
                                 id="category_id" 
                                 name="category_id"
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                             >
                                 <option value="">No category</option>
                                 {% for category in categories %}
@@ -140,7 +140,7 @@
 
                     <!-- Job description -->
                     <div>
-                        <label for="description" class="block text-sm font-medium text-gray-700">
+                        <label for="description" class="block text-sm font-medium text-slate-200">
                             Job Description *
                         </label>
                         <div class="mt-1">
@@ -149,15 +149,15 @@
                                 name="description" 
                                 rows="8"
                                 required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                             >{{ job.description }}</textarea>
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Minimum 10 characters required.</p>
+                        <p class="mt-2 text-sm text-slate-400">Minimum 10 characters required.</p>
                     </div>
 
                     <!-- Tags -->
                     <div>
-                        <label for="tags" class="block text-sm font-medium text-gray-700">
+                        <label for="tags" class="block text-sm font-medium text-slate-200">
                             Tags (optional)
                         </label>
                         <div class="mt-1">
@@ -166,17 +166,17 @@
                                 id="tags" 
                                 name="tags"
                                 value="{{ job.tags or '' }}"
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                 placeholder="e.g., python, remote, senior"
                             >
                         </div>
-                        <p class="mt-2 text-sm text-gray-500">Comma-separated tags to help candidates find your job.</p>
+                        <p class="mt-2 text-sm text-slate-400">Comma-separated tags to help candidates find your job.</p>
                     </div>
 
                     <!-- Salary range -->
                     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                         <div>
-                            <label for="salary_min" class="block text-sm font-medium text-gray-700">
+                            <label for="salary_min" class="block text-sm font-medium text-slate-200">
                                 Minimum Salary
                             </label>
                             <div class="mt-1">
@@ -186,14 +186,14 @@
                                     name="salary_min"
                                     value="{{ job.salary_min or '' }}"
                                     min="0"
-                                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                     placeholder="50000"
                                 >
                             </div>
                         </div>
                         
                         <div>
-                            <label for="salary_max" class="block text-sm font-medium text-gray-700">
+                            <label for="salary_max" class="block text-sm font-medium text-slate-200">
                                 Maximum Salary
                             </label>
                             <div class="mt-1">
@@ -203,7 +203,7 @@
                                     name="salary_max"
                                     value="{{ job.salary_max or '' }}"
                                     min="0"
-                                    class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                    class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                     placeholder="80000"
                                 >
                             </div>
@@ -212,7 +212,7 @@
 
                     <!-- Apply URL -->
                     <div>
-                        <label for="apply_url" class="block text-sm font-medium text-gray-700">
+                        <label for="apply_url" class="block text-sm font-medium text-slate-200">
                             Application URL *
                         </label>
                         <div class="mt-1">
@@ -222,7 +222,7 @@
                                 name="apply_url" 
                                 value="{{ job.apply_url }}"
                                 required
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                                class="appearance-none block w-full px-3 py-2 border border-slate-600 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-slate-700 text-slate-100"
                                 placeholder="https://yourcompany.com/careers/apply"
                             >
                         </div>
@@ -231,11 +231,11 @@
                     <!-- Submit button -->
                     <div class="flex justify-end space-x-4">
                         <a href="/employer/dashboard"
-                           class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded-md text-sm font-medium">
+                           class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                             Cancel
                         </a>
                         <button type="submit"
-                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium">
+                                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm">
                             Update Job
                         </button>
                     </div>
@@ -264,7 +264,7 @@
         if (!isValid) {
             event.preventDefault();
             const responseDiv = document.getElementById('form-response');
-            responseDiv.innerHTML = '<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">Please fill in all required fields.</div>';
+            responseDiv.innerHTML = '<div class="bg-red-900/50 border border-red-700 text-red-200 px-4 py-3 rounded-lg mb-4">Please fill in all required fields.</div>';
         }
     });
     
