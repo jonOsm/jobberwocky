@@ -10,8 +10,13 @@ from datetime import datetime, timezone, timedelta
 from app.main import app
 from app.database import get_db, Base
 from app.models import Job, Employer, Category, EmployerAccount
-from app.auth import get_password_hash
+from app.auth import get_password_hash, serializer
 from app.config import settings
+
+
+def get_test_csrf_token():
+    """Get a proper CSRF token for testing"""
+    return serializer.dumps("csrf_token")
 
 
 # Test database configuration
@@ -65,7 +70,7 @@ def db() -> Generator[Session, None, None]:
 @pytest.fixture
 def client(db: Session) -> Generator[TestClient, None, None]:
     """Create a test client with database session"""
-    with TestClient(app) as test_client:
+    with TestClient(app, follow_redirects=False) as test_client:
         yield test_client
 
 
@@ -75,7 +80,7 @@ def admin_session(client: TestClient) -> dict:
     response = client.post("/admin/login", data={
         "username": settings.admin_username,
         "password": settings.admin_password,
-        "csrf_token": "test_csrf_token"
+        "csrf_token": get_test_csrf_token()
     })
     return response.cookies
 
@@ -105,7 +110,7 @@ def employer_session(client: TestClient, employer_account: EmployerAccount) -> d
     response = client.post("/employer/login", data={
         "email": employer_account.email,
         "password": "testpassword",
-        "csrf_token": "test_csrf_token"
+        "csrf_token": get_test_csrf_token()
     })
     return response.cookies
 
@@ -197,7 +202,7 @@ def draft_job(db: Session, employer: Employer, category: Category) -> Job:
 def mock_csrf_token(monkeypatch):
     """Mock CSRF token generation for consistent testing"""
     def mock_generate_csrf_token():
-        return "test_csrf_token"
+        return serializer.dumps("csrf_token")
     
     from app.auth import generate_csrf_token
     monkeypatch.setattr("app.auth.generate_csrf_token", mock_generate_csrf_token)

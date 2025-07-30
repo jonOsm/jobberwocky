@@ -151,10 +151,8 @@ async def jobs_feed(db: Session = Depends(get_db)):
         )
     ).order_by(Job.published_at.desc()).all()
     
-    return {
-        "jobs": [job.to_dict() for job in jobs],
-        "last_updated": datetime.now(timezone.utc).isoformat()
-    }
+    # Return array of jobs directly (standard JSON feed format)
+    return [job.to_dict() for job in jobs]
 
 
 @app.get("/jobs/{job_id}", response_class=HTMLResponse)
@@ -191,7 +189,8 @@ async def sitemap(db: Session = Depends(get_db)):
     
     sitemap_content += '</urlset>'
     
-    return sitemap_content
+    from fastapi.responses import Response
+    return Response(content=sitemap_content, media_type="application/xml")
 
 
 # Employer routes
@@ -217,6 +216,11 @@ async def employer_register(
 
     form_data = await request.form()
     print(f"DEBUG: form_data: {dict(form_data)}")
+
+    # Validate CSRF token
+    csrf_token = form_data.get("csrf_token")
+    if not csrf_token or not verify_csrf_token(csrf_token):
+        raise HTTPException(status_code=400, detail="Invalid CSRF token")
 
     # Check if email already exists
     existing_account = db.query(EmployerAccount).filter(
@@ -260,13 +264,12 @@ async def employer_register(
     db.commit()
     print(f"DEBUG: Created employer with id: {employer.id}")
 
-    # Create session and redirect to employer dashboard
+    # Create session and redirect to dashboard
     print(f"DEBUG: Creating session for employer_account_id: {employer_account.id}")
-    create_employer_session(response, employer_account.id)
+    redirect_response = RedirectResponse(url="/employer/dashboard", status_code=302)
+    create_employer_session(redirect_response, employer_account.id)
     print("DEBUG: Session created, redirecting to dashboard")
-    response.headers["Location"] = "/employer/dashboard"
-    response.status_code = 302
-    return response
+    return redirect_response
 
 
 @app.get("/employer/login", response_class=HTMLResponse)
@@ -326,11 +329,10 @@ async def employer_login(
 
     # Create session and redirect to dashboard
     print(f"DEBUG: Creating session for employer_account_id: {employer_account.id}")
-    create_employer_session(response, employer_account.id)
+    redirect_response = RedirectResponse(url="/employer/dashboard", status_code=302)
+    create_employer_session(redirect_response, employer_account.id)
     print("DEBUG: Session created, redirecting to dashboard")
-    response.headers["Location"] = "/employer/dashboard"
-    response.status_code = 302
-    return response
+    return redirect_response
 
 
 @app.post("/employer/logout")
@@ -553,7 +555,16 @@ async def employer_request_refund(
     # TODO: Process refund through Stripe
     # For now, just mark as refunded
     
-    return RedirectResponse(url="/employer/dashboard", status_code=302)
+    return templates.TemplateResponse(
+        "employer/dashboard.html",
+        {
+            "request": request,
+            "employer_account": db.query(EmployerAccount).filter(EmployerAccount.id == employer_account_id).first(),
+            "jobs": db.query(Job).filter(Job.employer_account_id == employer_account_id).order_by(Job.created_at.desc()).all(),
+            "refund_success": True,
+            "refunded_job": job
+        }
+    )
 
 
 # Admin routes
@@ -588,11 +599,10 @@ async def admin_login(
     
     if auth_result:
         print("DEBUG: Authentication successful, creating session and redirecting")
-        create_admin_session(response)
+        redirect_response = RedirectResponse(url="/admin?login=success", status_code=302)
+        create_admin_session(redirect_response)
         # Redirect with success message
-        response.headers["Location"] = "/admin?login=success"
-        response.status_code = 302
-        return response
+        return redirect_response
     else:
         print("DEBUG: Authentication failed, showing error")
         return templates.TemplateResponse(
@@ -611,9 +621,7 @@ async def admin_logout(response: Response):
     print("DEBUG: Logout called, clearing session")
     clear_admin_session(response)
     print("DEBUG: Session cleared, redirecting to home page")
-    response.headers["Location"] = "/"
-    response.status_code = 302
-    return response
+    return RedirectResponse(url="/", status_code=302)
 
 
 @app.get("/admin", response_class=HTMLResponse)

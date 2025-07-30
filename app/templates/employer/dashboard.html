@@ -48,6 +48,23 @@
         </div>
         {% endif %}
         
+        {% if refund_success %}
+        <div class="mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">
+                        Refund request submitted successfully! Your job "{{ refunded_job.title }}" has been marked as refunded.
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
         <!-- Account Info -->
         <div class="bg-white overflow-hidden shadow rounded-lg mb-6">
             <div class="px-4 py-5 sm:p-6">

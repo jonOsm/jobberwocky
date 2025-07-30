@@ -1,8 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+from datetime import datetime, timezone, timedelta
+
 from app.models import Job, Employer, Category, EmployerAccount
+from app.auth import serializer
 from app.config import settings
+
+
+def get_test_csrf_token():
+    """Get a proper CSRF token for testing"""
+    return serializer.dumps("csrf_token")
 
 
 class TestPublicRoutes:
@@ -76,7 +84,7 @@ class TestEmployerRoutes:
             "contact_name": "John Doe",
             "phone": "123-456-7890",
             "website": "https://newcompany.com",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         # Should redirect to dashboard
@@ -95,7 +103,7 @@ class TestEmployerRoutes:
             "password": "securepassword123",
             "company_name": "Another Company",
             "contact_name": "Jane Doe",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         assert response.status_code == 200  # Form reloaded with error
@@ -113,7 +121,7 @@ class TestEmployerRoutes:
         response = client.post("/employer/login", data={
             "email": employer_account.email,
             "password": "testpassword",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         assert response.status_code == 302
@@ -124,7 +132,7 @@ class TestEmployerRoutes:
         response = client.post("/employer/login", data={
             "email": employer_account.email,
             "password": "wrongpassword",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         assert response.status_code == 200  # Form reloaded with error
@@ -146,7 +154,7 @@ class TestEmployerRoutes:
     def test_employer_logout(self, client: TestClient, employer_session: dict):
         """Test employer logout"""
         response = client.post("/employer/logout", data={
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         }, cookies=employer_session)
         
         assert response.status_code == 302
@@ -176,7 +184,7 @@ class TestEmployerRoutes:
             "apply_url": "https://apply.example.com",
             "employer_id": str(employer.id),
             "category_id": str(category.id),
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         }, cookies=employer_session)
         
         assert response.status_code == 302
@@ -193,7 +201,7 @@ class TestEmployerRoutes:
         """Test successful refund request"""
         response = client.post(f"/employer/jobs/{published_job.id}/refund", data={
             "reason": "Job posted by mistake",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         }, cookies=employer_session)
         
         assert response.status_code == 200
@@ -215,7 +223,7 @@ class TestAdminRoutes:
         response = client.post("/admin/login", data={
             "username": settings.admin_username,
             "password": settings.admin_password,
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         assert response.status_code == 302
@@ -226,7 +234,7 @@ class TestAdminRoutes:
         response = client.post("/admin/login", data={
             "username": "wronguser",
             "password": "wrongpass",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         assert response.status_code == 200  # Form reloaded with error
@@ -247,7 +255,7 @@ class TestAdminRoutes:
     def test_admin_logout(self, client: TestClient, admin_session: dict):
         """Test admin logout"""
         response = client.post("/admin/logout", data={
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         }, cookies=admin_session)
         
         assert response.status_code == 302
@@ -271,7 +279,7 @@ class TestAdminRoutes:
             "employer_id": str(employer.id),
             "category_id": str(category.id),
             "status": "published",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         }, cookies=admin_session)
         
         assert response.status_code == 302
@@ -311,7 +319,7 @@ class TestSecurityFeatures:
         response = client.post("/employer/login", data={
             "email": employer_account.email,
             "password": "testpassword",
-            "csrf_token": "test_csrf_token"
+            "csrf_token": get_test_csrf_token()
         })
         
         # Check that session cookie is set
