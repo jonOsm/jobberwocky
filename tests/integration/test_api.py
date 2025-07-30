@@ -341,9 +341,11 @@ class TestContextualNavigation:
         
         # Should show public navigation links
         assert "Jobs" in response.text
-        assert "JSON Feed" in response.text
+        # JSON Feed link should NOT be visible for public users
+        assert "JSON Feed" not in response.text
         assert "Employer Login" in response.text
-        assert "Admin" in response.text
+        # Admin link should NOT be visible for public users
+        assert "Admin" not in response.text
         
         # Should NOT show authenticated user links
         assert "Dashboard" not in response.text
@@ -367,7 +369,8 @@ class TestContextualNavigation:
         
         # Should still show public links
         assert "Jobs" in response.text
-        assert "JSON Feed" in response.text
+        # JSON Feed link should NOT be visible for employers
+        assert "JSON Feed" not in response.text
     
     def test_admin_navigation_authenticated(self, client: TestClient, admin_session: dict):
         """Test navigation for authenticated admins"""
@@ -386,7 +389,8 @@ class TestContextualNavigation:
         
         # Should still show public links
         assert "Jobs" in response.text
-        assert "JSON Feed" in response.text
+        # JSON Feed link should NOT be visible for admins
+        assert "JSON Feed" not in response.text
     
     def test_navigation_after_login(self, client: TestClient, employer_account: EmployerAccount):
         """Test navigation changes after login"""
@@ -982,3 +986,80 @@ class TestEmployerJobEditing:
         db.refresh(job)  # Refresh the job object to get the latest data
         assert job.title == "Updated Job Title"
         assert job.description == "Updated job description" 
+
+
+class TestJobsNavigation:
+    """Test that jobs page is always accessible regardless of authentication status"""
+    
+    def test_jobs_link_always_accessible_for_employers(self, client, employer_session):
+        """Test that employers can access jobs page via navigation"""
+        response = client.get("/", cookies=employer_session)
+        # Should not redirect to dashboard, should show jobs page
+        assert response.status_code == 200
+        assert "Job Board" in response.text
+        assert "Find Your Next Opportunity" in response.text
+    
+    def test_jobs_link_always_accessible_for_admins(self, client, admin_session):
+        """Test that admins can access jobs page via navigation"""
+        response = client.get("/", cookies=admin_session)
+        # Should not redirect to admin dashboard, should show jobs page
+        assert response.status_code == 200
+        assert "Job Board" in response.text
+        assert "Find Your Next Opportunity" in response.text
+    
+    def test_jobs_link_always_accessible_for_public_users(self, client):
+        """Test that public users can access jobs page via navigation"""
+        response = client.get("/")
+        assert response.status_code == 200
+        assert "Job Board" in response.text
+        assert "Find Your Next Opportunity" in response.text
+
+
+class TestAdminLinkVisibility:
+    """Test that admin link is hidden from navigation"""
+    
+    def test_admin_link_not_visible_for_public_users(self, client):
+        """Test that admin link is not shown to unauthenticated users"""
+        response = client.get("/")
+        assert response.status_code == 200
+        # Should not contain admin link in navigation
+        assert "Admin" not in response.text
+    
+    def test_admin_link_not_visible_for_employers(self, client, employer_session):
+        """Test that admin link is not shown to employers"""
+        response = client.get("/", cookies=employer_session)
+        assert response.status_code == 200
+        # Should not contain admin link in navigation
+        assert "Admin" not in response.text
+    
+    def test_admin_link_visible_for_admins(self, client, admin_session):
+        """Test that admin link is shown to authenticated admins"""
+        response = client.get("/", cookies=admin_session)
+        assert response.status_code == 200
+        # Should contain admin navigation for authenticated admins
+        assert "Admin Dashboard" in response.text 
+
+
+class TestJsonFeedLinkVisibility:
+    """Test that JSON Feed link is removed from navigation"""
+    
+    def test_json_feed_link_not_visible_for_public_users(self, client):
+        """Test that JSON Feed link is not shown to unauthenticated users"""
+        response = client.get("/")
+        assert response.status_code == 200
+        # Should not contain JSON Feed link in navigation
+        assert "JSON Feed" not in response.text
+    
+    def test_json_feed_link_not_visible_for_employers(self, client, employer_session):
+        """Test that JSON Feed link is not shown to employers"""
+        response = client.get("/", cookies=employer_session)
+        assert response.status_code == 200
+        # Should not contain JSON Feed link in navigation
+        assert "JSON Feed" not in response.text
+    
+    def test_json_feed_link_not_visible_for_admins(self, client, admin_session):
+        """Test that JSON Feed link is not shown to admins"""
+        response = client.get("/", cookies=admin_session)
+        assert response.status_code == 200
+        # Should not contain JSON Feed link in navigation
+        assert "JSON Feed" not in response.text 

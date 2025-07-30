@@ -86,25 +86,8 @@ async def index(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Home page with job listings and search - redirects authenticated users"""
-    # Check for authenticated users and redirect them
-    try:
-        # Check for employer authentication
-        employer_account_id = verify_employer_session(request)
-        if employer_account_id:
-            return RedirectResponse(url="/employer/dashboard", status_code=302)
-    except Exception:
-        pass  # Continue to check admin authentication
-    
-    try:
-        # Check for admin authentication
-        is_admin = verify_admin_session(request)
-        if is_admin:
-            return RedirectResponse(url="/admin", status_code=302)
-    except Exception:
-        pass  # Continue to show public home page
-    
-    # Get all published jobs for public users
+    """Home page with job listings and search - always accessible"""
+    # Get all published jobs for all users
     jobs = db.query(Job).filter(
         Job.status == "published",
         or_(
