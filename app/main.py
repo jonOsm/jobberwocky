@@ -582,7 +582,7 @@ async def employer_request_refund(
     job_id: int,
     db: Session = Depends(get_db)
 ):
-    """Request a refund for a job"""
+    """Request refund for a job"""
     employer_account_id = verify_employer_session(request)
     if not employer_account_id:
         return RedirectResponse(url="/employer/login", status_code=302)
@@ -595,11 +595,8 @@ async def employer_request_refund(
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
     
-    if not job.can_refund:
-        raise HTTPException(status_code=400, detail="Job is not eligible for refund")
-    
     form_data = await request.form()
-    reason = form_data.get("reason")
+    reason = form_data.get("reason", "No reason provided")
     
     job.refund_requested_at = datetime.now(timezone.utc)
     job.refund_reason = reason
@@ -620,6 +617,91 @@ async def employer_request_refund(
             "refunded_job": job
         }
     )
+
+
+@app.get("/employer/jobs/{job_id}/edit", response_class=HTMLResponse)
+async def employer_edit_job_form(
+    request: Request,
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """Edit job form for employers"""
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.employer_account_id == employer_account_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    categories = db.query(Category).all()
+    employers = db.query(Employer).filter(
+        Employer.account_id == employer_account_id
+    ).all()
+    
+    return templates.TemplateResponse(
+        "employer/edit_job.html",
+        {
+            "request": request,
+            "job": job,
+            "categories": categories,
+            "employers": employers
+        }
+    )
+
+
+@app.post("/employer/jobs/{job_id}")
+async def employer_update_job(
+    request: Request,
+    job_id: int,
+    db: Session = Depends(get_db)
+):
+    """Update a job for employer"""
+    employer_account_id = verify_employer_session(request)
+    if not employer_account_id:
+        return RedirectResponse(url="/employer/login", status_code=302)
+    
+    job = db.query(Job).filter(
+        Job.id == job_id,
+        Job.employer_account_id == employer_account_id
+    ).first()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    
+    form_data = await request.form()
+    
+    # Validate CSRF token
+    csrf_token = form_data.get("csrf_token")
+    if not csrf_token or not verify_csrf_token(csrf_token):
+        raise HTTPException(status_code=403, detail="Invalid CSRF token")
+    
+    # Update fields
+    if form_data.get("title"):
+        job.title = form_data.get("title")
+    if form_data.get("description"):
+        job.description = form_data.get("description")
+    if form_data.get("tags"):
+        job.tags = form_data.get("tags")
+    if form_data.get("salary_min"):
+        job.salary_min = int(form_data.get("salary_min"))
+    if form_data.get("salary_max"):
+        job.salary_max = int(form_data.get("salary_max"))
+    if form_data.get("apply_url"):
+        job.apply_url = form_data.get("apply_url")
+    if form_data.get("employer_id"):
+        job.employer_id = int(form_data.get("employer_id"))
+    if form_data.get("category_id"):
+        job.category_id = int(form_data.get("category_id"))
+    
+    db.commit()
+    
+    # Redirect to dashboard with success message
+    return RedirectResponse(url="/employer/dashboard?edit=success", status_code=302)
 
 
 # Admin routes

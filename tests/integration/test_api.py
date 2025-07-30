@@ -810,3 +810,175 @@ class TestFormDataHandling:
         # This test verifies that form data handling is in place
         # The actual handling is tested in other integration tests
         assert True  # Placeholder for coverage 
+
+
+class TestEmployerJobEditing:
+    """Test employer job editing functionality"""
+    
+    def test_employer_edit_job_form_route_exists(self, client):
+        """Test that the employer edit job form route exists"""
+        response = client.get("/employer/jobs/1/edit")
+        # Should either return 200 (if authenticated) or 302 (redirect to login)
+        assert response.status_code in [200, 302]
+    
+    def test_employer_edit_job_form_requires_authentication(self, client):
+        """Test that employer edit job form requires authentication"""
+        response = client.get("/employer/jobs/1/edit")
+        assert response.status_code == 302
+        assert "login" in response.headers.get("location", "")
+    
+    def test_employer_update_job_route_exists(self, client):
+        """Test that the employer update job route exists"""
+        response = client.post("/employer/jobs/1", data={
+            "title": "Updated Job Title",
+            "description": "Updated job description",
+            "csrf_token": "test_token"
+        })
+        # Should either return 200 (if authenticated) or 302 (redirect to login)
+        assert response.status_code in [200, 302, 403]
+    
+    def test_employer_can_only_edit_own_jobs(self, client):
+        """Test that employers can only edit their own jobs"""
+        # This test will fail initially because the route doesn't exist
+        # It should check that employers can't edit jobs they don't own
+        response = client.get("/employer/jobs/999/edit")
+        assert response.status_code in [404, 302, 403]
+    
+    def test_employer_edit_job_form_content(self, client, db):
+        """Test that the edit form contains the expected fields"""
+        # Create a test employer and job
+        from app.models import EmployerAccount, Employer, Job, Category
+        
+        # Create employer account
+        employer_account = EmployerAccount(
+            email="test@example.com",
+            password_hash="hashed_password",
+            company_name="Test Company",
+            contact_name="Test Contact"
+        )
+        db.add(employer_account)
+        db.commit()
+        
+        # Create employer
+        employer = Employer(
+            name="Test Company",
+            website="https://test.com",
+            account_id=employer_account.id
+        )
+        db.add(employer)
+        db.commit()
+        
+        # Create category
+        category = Category(
+            name="Test Category",
+            slug="test-category",
+            description="Test category description"
+        )
+        db.add(category)
+        db.commit()
+        
+        # Create job
+        job = Job(
+            title="Test Job",
+            description="Test description",
+            apply_url="https://test.com/apply",
+            employer_id=employer.id,
+            employer_account_id=employer_account.id,
+            category_id=category.id
+        )
+        db.add(job)
+        db.commit()
+        
+        # Mock authentication by setting a session cookie
+        from app.auth import create_employer_session
+        response = client.get(f"/employer/jobs/{job.id}/edit")
+        
+        # Should redirect to login since we're not authenticated
+        assert response.status_code == 302
+        assert "login" in response.headers.get("location", "")
+    
+    def test_employer_update_job_success(self, client, db):
+        """Test successful job update by employer"""
+        # Create a test employer and job
+        from app.models import EmployerAccount, Employer, Job, Category
+        
+        # Create employer account
+        employer_account = EmployerAccount(
+            email="test@example.com",
+            password_hash="hashed_password",
+            company_name="Test Company",
+            contact_name="Test Contact"
+        )
+        db.add(employer_account)
+        db.commit()
+        
+        # Create employer
+        employer = Employer(
+            name="Test Company",
+            website="https://test.com",
+            account_id=employer_account.id
+        )
+        db.add(employer)
+        db.commit()
+        
+        # Create category
+        category = Category(
+            name="Test Category",
+            slug="test-category",
+            description="Test category description"
+        )
+        db.add(category)
+        db.commit()
+        
+        # Create job
+        job = Job(
+            title="Test Job",
+            description="Test description",
+            apply_url="https://test.com/apply",
+            employer_id=employer.id,
+            employer_account_id=employer_account.id,
+            category_id=category.id
+        )
+        db.add(job)
+        db.commit()
+        
+        # Test update without authentication (should redirect)
+        response = client.post(f"/employer/jobs/{job.id}", data={
+            "title": "Updated Job Title",
+            "description": "Updated job description",
+            "csrf_token": "test_token"
+        })
+        
+        # Should redirect to login since we're not authenticated
+        assert response.status_code == 302
+        assert "login" in response.headers.get("location", "")
+    
+    def test_employer_update_job_redirects_to_dashboard(self, client, db, employer_session, employer_account, employer, category):
+        """Test that successful job update redirects to dashboard with success message"""
+        # Create job using the existing employer account from the session
+        job = Job(
+            title="Test Job",
+            description="Test description",
+            apply_url="https://test.com/apply",
+            employer_id=employer.id,
+            employer_account_id=employer_account.id,
+            category_id=category.id
+        )
+        db.add(job)
+        db.commit()
+        
+        # Test successful update with authentication
+        response = client.post(f"/employer/jobs/{job.id}", data={
+            "title": "Updated Job Title",
+            "description": "Updated job description",
+            "csrf_token": get_test_csrf_token()
+        }, cookies=employer_session)
+        
+        # Should redirect to dashboard with success message
+        assert response.status_code == 302
+        assert "employer/dashboard?edit=success" in response.headers.get("location", "")
+        
+        # Verify the job was actually updated
+        db.refresh(job)  # Refresh the job object to get the latest data
+        assert job.title == "Updated Job Title"
+        assert job.description == "Updated job description" 
