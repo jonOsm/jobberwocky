@@ -3,11 +3,11 @@
 {% block title %}Job Board - Find Your Next Opportunity{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-4">
     <!-- Hero section -->
-    <div class="text-center py-8">
-        <h1 class="text-4xl font-bold text-slate-100 mb-3">Find Your Next Opportunity</h1>
-        <p class="text-lg text-slate-300 mb-6">Discover amazing jobs from top companies</p>
+    <div class="text-center py-6">
+        <h1 class="text-4xl font-bold text-slate-100 mb-2">Find Your Next Opportunity</h1>
+        <p class="text-lg text-slate-300 mb-4">Discover amazing jobs from top companies</p>
         
         <!-- Employer CTA -->
         <div class="flex justify-center space-x-3">
@@ -23,9 +23,9 @@
     </div>
 
     <!-- Search and filters -->
-    <div class="bg-slate-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700 p-5">
-        <form hx-get="/search" hx-target="#job-results" hx-trigger="submit, keyup changed delay:500ms from:input" hx-indicator="#search-indicator" class="space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="bg-slate-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700 p-4">
+        <form hx-get="/search" hx-target="#job-results" hx-trigger="submit, keyup changed delay:500ms from:input" hx-indicator="#search-indicator" class="space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <!-- Search input -->
                 <div class="md:col-span-2">
                     <label for="q" class="block text-sm font-medium text-slate-200 mb-1">Search Jobs</label>
@@ -70,8 +70,17 @@
                 </div>
             </div>
             
-            <!-- Submit button -->
-            <div class="flex justify-end">
+            <!-- Submit button and search indicator -->
+            <div class="flex justify-between items-center">
+                <div id="search-indicator" class="htmx-indicator">
+                    <div class="inline-flex items-center px-3 py-1.5 bg-blue-900 text-blue-200 rounded-md text-sm">
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Searching...
+                    </div>
+                </div>
                 <button 
                     type="submit" 
                     class="px-5 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-800 transition-colors shadow-sm"
@@ -82,30 +91,19 @@
         </form>
     </div>
 
-    <!-- Search indicator -->
-    <div id="search-indicator" class="htmx-indicator text-center py-3">
-        <div class="inline-flex items-center px-4 py-2 bg-blue-900 text-blue-200 rounded-lg">
-            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Searching jobs...
-        </div>
-    </div>
-
     <!-- Job results -->
-    <div id="job-results" class="space-y-4">
+    <div id="job-results" class="space-y-3">
         {% if jobs %}
-            <div class="text-sm text-slate-300 mb-3">
+            <div class="text-sm text-slate-300 mb-2">
                 Found {{ jobs|length }} job{{ 's' if jobs|length != 1 else '' }}
                 {% if search_query or selected_category or selected_tags %}
                     matching your criteria
                 {% endif %}
             </div>
             
-            <div class="grid gap-4">
+            <div class="grid gap-3">
                 {% for job in jobs %}
-                <div class="job-card bg-slate-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700 p-5 hover:shadow-xl">
+                <div class="job-card bg-slate-800/70 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700 p-4 hover:shadow-xl">
                     <div class="flex justify-between items-start">
                         <div class="flex-1">
                             <h2 class="text-lg font-semibold text-slate-100 mb-2">
@@ -114,7 +112,7 @@
                                 </a>
                             </h2>
                             
-                            <div class="flex items-center text-sm text-slate-300 mb-3">
+                            <div class="flex items-center text-sm text-slate-300 mb-2">
                                 <span class="font-medium">{{ job.employer.name }}</span>
                                 {% if job.category %}
                                 <span class="mx-2">•</span>
@@ -126,10 +124,10 @@
                                 {% endif %}
                             </div>
                             
-                            <p class="text-slate-300 mb-3 line-clamp-2">{{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}</p>
+                            <p class="text-slate-300 mb-2 line-clamp-2">{{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}</p>
                             
                             {% if job.tags %}
-                            <div class="flex flex-wrap gap-1.5 mb-3">
+                            <div class="flex flex-wrap gap-1.5 mb-2">
                                 {% for tag in job.tag_list %}
                                 <span class="px-2 py-1 bg-blue-900 text-blue-200 text-xs rounded-full">{{ tag }}</span>
                                 {% endfor %}
@@ -137,7 +135,7 @@
                             {% endif %}
                             
                             {% if job.salary_min and job.salary_max %}
-                            <div class="text-sm text-slate-300 mb-3">
+                            <div class="text-sm text-slate-300 mb-2">
                                 <span class="font-medium">Salary:</span> ${{ "{:,}".format(job.salary_min) }} - ${{ "{:,}".format(job.salary_max) }} {{ job.salary_currency }}
                             </div>
                             {% endif %}
@@ -158,8 +156,8 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="text-center py-8">
-                <div class="text-slate-500 mb-4">
+            <div class="text-center py-6">
+                <div class="text-slate-500 mb-3">
                     <svg class="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
