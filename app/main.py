@@ -14,6 +14,7 @@ from app.models import Base, Job, Employer, Category, EmployerAccount
 from app.schemas import JobCreate, JobUpdate, EmployerCreate, CategoryCreate, JobSearchParams, EmployerAccountCreate, EmployerAccountLogin, RefundRequest
 from app.auth import security, authenticate_admin, authenticate_admin_plain, generate_csrf_token, verify_csrf_token, create_admin_session, verify_admin_session, clear_admin_session, require_csrf_token, create_employer_session, verify_employer_session, clear_employer_session, get_password_hash, verify_password
 from app.config import settings
+from app.utils import render_markdown
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -32,6 +33,9 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 # Templates
 templates = Jinja2Templates(directory="app/templates")
+
+# Register custom filters
+templates.env.filters["markdown"] = render_markdown
 
 
 @app.middleware("http")

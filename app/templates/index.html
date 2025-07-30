@@ -124,7 +124,7 @@
                                 {% endif %}
                             </div>
                             
-                            <p class="text-slate-300 mb-2 line-clamp-2">{{ job.description[:180] }}{% if job.description|length > 180 %}...{% endif %}</p>
+                            <div class="text-slate-300 mb-2 line-clamp-2 [&>h1]:text-lg [&>h1]:font-bold [&>h1]:text-slate-100 [&>h1]:mb-2 [&>h1]:mt-1 [&>h2]:text-base [&>h2]:font-semibold [&>h2]:text-slate-100 [&>h2]:mb-1 [&>h2]:mt-1 [&>h3]:text-sm [&>h3]:font-medium [&>h3]:text-slate-100 [&>h3]:mb-1 [&>h3]:mt-1">{{ job.description|markdown }}</div>
                             
                             {% if job.tags %}
                             <div class="flex flex-wrap gap-1.5 mb-2">
