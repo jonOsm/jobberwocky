@@ -47,9 +47,49 @@
                     <a href="/jobs/feed.json" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
                         JSON Feed
                     </a>
-                    <a href="/admin" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
-                        Admin
-                    </a>
+                    
+                    {% if request.scope.is_employer %}
+                        <!-- Employer Navigation -->
+                        <a href="/employer/dashboard" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold">
+                            Dashboard
+                        </a>
+                        <a href="/employer/jobs/new" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Post Job
+                        </a>
+                        <form method="POST" action="/employer/logout" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
+                            <button type="submit" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                                Logout
+                            </button>
+                        </form>
+                    {% elif request.scope.is_admin %}
+                        <!-- Admin Navigation -->
+                        <a href="/admin" class="text-blue-600 hover:text-blue-700 px-3 py-2 rounded-md text-sm font-medium font-semibold">
+                            Admin Dashboard
+                        </a>
+                        <a href="/admin/jobs/new" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            New Job
+                        </a>
+                        <form method="POST" action="/admin/logout" class="inline">
+                            <input type="hidden" name="csrf_token" value="{{ request.scope.csrf_token }}">
+                            <button type="submit" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                                Logout
+                            </button>
+                        </form>
+                    {% else %}
+                        <!-- Public Navigation (not authenticated) -->
+                        <a href="/employer/login" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Employer Login
+                        </a>
+                        {% if request.scope.settings.employer_registration_enabled %}
+                        <a href="/employer/register" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Register
+                        </a>
+                        {% endif %}
+                        <a href="/admin/login" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">
+                            Admin
+                        </a>
+                    {% endif %}
                 </div>
             </div>
         </div>

@@ -36,13 +36,33 @@ templates = Jinja2Templates(directory="app/templates")
 
 @app.middleware("http")
 async def add_csrf_token(request: Request, call_next):
-    """Add CSRF token to all responses"""
+    """Add CSRF token and authentication context to request scope"""
     # Add CSRF token to request scope for templates BEFORE processing
     if not hasattr(request, "scope"):
         request.scope = {}
     csrf_token = generate_csrf_token()
     request.scope["csrf_token"] = csrf_token
     print(f"DEBUG: Middleware - Generated CSRF token: {csrf_token}")
+    
+    # Add settings to request scope
+    request.scope["settings"] = settings
+    
+    # Add authentication context to request scope
+    try:
+        employer_account_id = verify_employer_session(request)
+        request.scope["is_employer"] = bool(employer_account_id)
+        request.scope["employer_account_id"] = employer_account_id
+    except Exception as e:
+        print(f"DEBUG: Middleware - Employer auth error: {e}")
+        request.scope["is_employer"] = False
+        request.scope["employer_account_id"] = None
+    
+    try:
+        is_admin = verify_admin_session(request)
+        request.scope["is_admin"] = is_admin
+    except Exception as e:
+        print(f"DEBUG: Middleware - Admin auth error: {e}")
+        request.scope["is_admin"] = False
     
     response = await call_next(request)
     return response
@@ -66,8 +86,25 @@ async def index(
     request: Request,
     db: Session = Depends(get_db)
 ):
-    """Home page with job listings and search"""
-    # Get all published jobs
+    """Home page with job listings and search - redirects authenticated users"""
+    # Check for authenticated users and redirect them
+    try:
+        # Check for employer authentication
+        employer_account_id = verify_employer_session(request)
+        if employer_account_id:
+            return RedirectResponse(url="/employer/dashboard", status_code=302)
+    except Exception:
+        pass  # Continue to check admin authentication
+    
+    try:
+        # Check for admin authentication
+        is_admin = verify_admin_session(request)
+        if is_admin:
+            return RedirectResponse(url="/admin", status_code=302)
+    except Exception:
+        pass  # Continue to show public home page
+    
+    # Get all published jobs for public users
     jobs = db.query(Job).filter(
         Job.status == "published",
         or_(
@@ -196,9 +233,18 @@ async def sitemap(db: Session = Depends(get_db)):
 # Employer routes
 @app.get("/employer/register", response_class=HTMLResponse)
 async def employer_register_form(request: Request):
-    """Employer registration form"""
+    """Employer registration form - redirects authenticated users to dashboard"""
+    # Check if registration is enabled
     if not settings.employer_registration_enabled:
         raise HTTPException(status_code=404, detail="Employer registration is disabled")
+    
+    # Check if user is already authenticated
+    try:
+        employer_account_id = verify_employer_session(request)
+        if employer_account_id:
+            return RedirectResponse(url="/employer/dashboard", status_code=302)
+    except Exception:
+        pass  # Continue to show registration form
     
     return templates.TemplateResponse("employer/register.html", {"request": request})
 
@@ -274,7 +320,15 @@ async def employer_register(
 
 @app.get("/employer/login", response_class=HTMLResponse)
 async def employer_login_form(request: Request):
-    """Employer login form"""
+    """Employer login form - redirects authenticated users to dashboard"""
+    # Check if user is already authenticated
+    try:
+        employer_account_id = verify_employer_session(request)
+        if employer_account_id:
+            return RedirectResponse(url="/employer/dashboard", status_code=302)
+    except Exception:
+        pass  # Continue to show login form
+    
     return templates.TemplateResponse("employer/login.html", {"request": request})
 
 
@@ -338,8 +392,9 @@ async def employer_login(
 @app.post("/employer/logout")
 async def employer_logout(response: Response):
     """Employer logout"""
-    clear_employer_session(response)
-    return RedirectResponse(url="/", status_code=302)
+    redirect_response = RedirectResponse(url="/", status_code=302)
+    clear_employer_session(redirect_response)
+    return redirect_response
 
 
 @app.get("/employer/dashboard", response_class=HTMLResponse)
@@ -570,7 +625,15 @@ async def employer_request_refund(
 # Admin routes
 @app.get("/admin/login", response_class=HTMLResponse)
 async def admin_login_form(request: Request):
-    """Admin login form"""
+    """Admin login form - redirects authenticated users to dashboard"""
+    # Check if user is already authenticated
+    try:
+        is_admin = verify_admin_session(request)
+        if is_admin:
+            return RedirectResponse(url="/admin", status_code=302)
+    except Exception:
+        pass  # Continue to show login form
+    
     print("DEBUG: Login form accessed")
     import sys
     sys.stdout.flush()
@@ -618,10 +681,9 @@ async def admin_login(
 @app.post("/admin/logout")
 async def admin_logout(response: Response):
     """Admin logout"""
-    print("DEBUG: Logout called, clearing session")
-    clear_admin_session(response)
-    print("DEBUG: Session cleared, redirecting to home page")
-    return RedirectResponse(url="/", status_code=302)
+    redirect_response = RedirectResponse(url="/", status_code=302)
+    clear_admin_session(redirect_response)
+    return redirect_response
 
 
 @app.get("/admin", response_class=HTMLResponse)
