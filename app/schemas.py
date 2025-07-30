@@ -131,6 +131,8 @@ class JobSearchParams(BaseModel):
     category: Optional[str] = None
     tags: Optional[str] = None
     employer: Optional[str] = None
+    salary_min: Optional[int] = Field(None, ge=0)
+    salary_max: Optional[int] = Field(None, ge=0)
     status: Optional[str] = Field(None, pattern="^(draft|published|expired|refunded)$")
 
 

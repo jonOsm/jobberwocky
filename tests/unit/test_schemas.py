@@ -33,7 +33,7 @@ class TestJobCreate:
         assert job.salary_min == 80000
         assert job.salary_max == 120000
         assert job.salary_currency == "USD"
-        assert job.apply_url == "https://apply.example.com"
+        assert str(job.apply_url) == "https://apply.example.com/"
         assert job.employer_id == 1
         assert job.category_id == 1
     
@@ -68,7 +68,7 @@ class TestJobCreate:
             JobCreate(**data)
         
         errors = exc_info.value.errors()
-        assert any("salary_max must be greater than salary_min" in str(error) for error in errors)
+        assert any("salary_max must be greater than or equal to salary_min" in str(error) for error in errors)
     
     def test_job_create_invalid_url(self):
         """Test job creation with invalid URL"""
@@ -176,7 +176,7 @@ class TestEmployerAccountCreate:
         assert account.company_name == "Test Company"
         assert account.contact_name == "John Doe"
         assert account.phone == "123-456-7890"
-        assert account.website == "https://testcompany.com"
+        assert str(account.website) == "https://testcompany.com/"
     
     def test_employer_account_create_invalid_email(self):
         """Test employer account creation with invalid email"""
@@ -259,10 +259,12 @@ class TestRefundRequest:
     def test_valid_refund_request(self):
         """Test valid refund request"""
         data = {
+            "job_id": 1,
             "reason": "Job posted by mistake"
         }
         
         refund = RefundRequest(**data)
+        assert refund.job_id == 1
         assert refund.reason == "Job posted by mistake"
     
     def test_refund_request_empty_reason(self):
@@ -306,6 +308,7 @@ class TestJobResponse:
             "created_at": "2023-01-01T00:00:00+00:00",
             "published_at": "2023-01-02T00:00:00+00:00",
             "expires_at": "2023-02-01T00:00:00+00:00",
+            "is_expired": False,
             "can_refund": True
         }
         

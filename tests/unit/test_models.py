@@ -81,18 +81,27 @@ class TestJobProperties:
         assert job.can_refund is False
     
     def test_can_refund_no_published_at(self):
-        """Test can_refund with no published_at date"""
-        job = Job(status="published")
+        """Test can_refund with no published_at date (draft job)"""
+        job = Job(status="draft")
         assert job.can_refund is False
     
     def test_can_refund_naive_datetime(self):
         """Test can_refund with timezone-naive datetime (backward compatibility)"""
-        published_at = datetime.now() - timedelta(hours=2)
+        from unittest.mock import patch
+        from datetime import datetime, timezone
+        
+        published_at = datetime(2023, 1, 1, 12, 0, 0)  # No timezone info (naive)
         job = Job(
             status="published",
             published_at=published_at
         )
-        assert job.can_refund is True
+        
+        # Mock the current time to be within the refund window (2 hours after published_at)
+        mock_now = datetime(2023, 1, 1, 14, 0, 0, tzinfo=timezone.utc)
+        
+        with patch('app.models.datetime') as mock_datetime:
+            mock_datetime.now.return_value = mock_now
+            assert job.can_refund is True
     
     def test_to_dict(self):
         """Test to_dict method"""

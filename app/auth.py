@@ -126,7 +126,8 @@ def clear_employer_session(response: Response) -> None:
 
 
 def generate_csrf_token() -> str:
-    return serializer.dumps("csrf_token")
+    import secrets
+    return serializer.dumps(f"csrf_token_{secrets.token_hex(16)}")
 
 
 def verify_csrf_token(token: str, max_age: int = 3600) -> bool:
